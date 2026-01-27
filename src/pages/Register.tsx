@@ -1,19 +1,110 @@
-import { Link } from "react-router-dom";
-import { BrainCircuit, Mail, Lock, User, Building2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { BrainCircuit, Mail, Lock, User, Building2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { useState } from "react";
-import { cn } from "@/lib/utils";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
+import { z } from "zod";
+
+const registerSchema = z.object({
+  email: z.string().trim().email({ message: "Please enter a valid email address" }),
+  password: z.string().min(6, { message: "Password must be at least 6 characters" }),
+  confirmPassword: z.string(),
+  role: z.enum(["candidate", "hr"], { required_error: "Please select a role" }),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
+});
+
+type RegisterForm = z.infer<typeof registerSchema>;
 
 export default function Register() {
-  const [role, setRole] = useState("candidate");
+  const navigate = useNavigate();
+  const { signUp, user, role, loading: authLoading } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<Partial<Record<keyof RegisterForm, string>>>({});
+  
+  const [form, setForm] = useState<RegisterForm>({
+    email: "",
+    password: "",
+    confirmPassword: "",
+    role: "candidate",
+  });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // TODO: Implement register logic
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user && role && !authLoading) {
+      const redirectPath = role === "hr" ? "/hr-dashboard" : "/candidate-dashboard";
+      navigate(redirectPath, { replace: true });
+    }
+  }, [user, role, authLoading, navigate]);
+
+  const handleChange = (field: keyof RegisterForm, value: string) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+    // Clear error when user starts typing
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
+    }
   };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrors({});
+
+    // Validate form
+    const result = registerSchema.safeParse(form);
+    if (!result.success) {
+      const fieldErrors: Partial<Record<keyof RegisterForm, string>> = {};
+      result.error.errors.forEach((err) => {
+        const field = err.path[0] as keyof RegisterForm;
+        fieldErrors[field] = err.message;
+      });
+      setErrors(fieldErrors);
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const { error } = await signUp(form.email, form.password, form.role);
+
+      if (error) {
+        if (error.message.includes("already registered")) {
+          toast.error("This email is already registered. Please sign in instead.");
+        } else {
+          toast.error(error.message);
+        }
+        return;
+      }
+
+      toast.success("Account created successfully!");
+      
+      // Redirect based on role
+      const redirectPath = form.role === "hr" ? "/hr-dashboard" : "/candidate-dashboard";
+      navigate(redirectPath, { replace: true });
+    } catch (err) {
+      toast.error("An unexpected error occurred. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (authLoading) {
+    return (
+      <div className="container flex min-h-[calc(100vh-8rem)] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="container flex min-h-[calc(100vh-8rem)] items-center justify-center py-12">
@@ -32,98 +123,114 @@ export default function Register() {
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Role Selection */}
-            <div className="space-y-3">
-              <Label>I am a...</Label>
-              <RadioGroup
-                value={role}
-                onValueChange={setRole}
-                className="grid grid-cols-2 gap-4"
-              >
-                <div>
-                  <RadioGroupItem
-                    value="candidate"
-                    id="candidate"
-                    className="peer sr-only"
-                  />
-                  <Label
-                    htmlFor="candidate"
-                    className={cn(
-                      "flex flex-col items-center justify-center rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer transition-all",
-                      role === "candidate" && "border-primary bg-primary/5"
-                    )}
-                  >
-                    <User className="mb-2 h-6 w-6" />
-                    <span className="text-sm font-medium">Candidate</span>
-                  </Label>
-                </div>
-                <div>
-                  <RadioGroupItem
-                    value="hr"
-                    id="hr"
-                    className="peer sr-only"
-                  />
-                  <Label
-                    htmlFor="hr"
-                    className={cn(
-                      "flex flex-col items-center justify-center rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer transition-all",
-                      role === "hr" && "border-primary bg-primary/5"
-                    )}
-                  >
-                    <Building2 className="mb-2 h-6 w-6" />
-                    <span className="text-sm font-medium">HR Professional</span>
-                  </Label>
-                </div>
-              </RadioGroup>
-            </div>
-
+            {/* Email */}
             <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  id="name"
-                  type="text"
-                  placeholder="John Doe"
-                  className="pl-10"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">Email <span className="text-destructive">*</span></Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   id="email"
                   type="email"
                   placeholder="you@example.com"
-                  className="pl-10"
-                  required
+                  className={`pl-10 ${errors.email ? "border-destructive" : ""}`}
+                  value={form.email}
+                  onChange={(e) => handleChange("email", e.target.value)}
+                  disabled={isSubmitting}
                 />
               </div>
+              {errors.email && (
+                <p className="text-sm text-destructive">{errors.email}</p>
+              )}
             </div>
 
+            {/* Password */}
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">Password <span className="text-destructive">*</span></Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   id="password"
                   type="password"
                   placeholder="••••••••"
-                  className="pl-10"
-                  required
+                  className={`pl-10 ${errors.password ? "border-destructive" : ""}`}
+                  value={form.password}
+                  onChange={(e) => handleChange("password", e.target.value)}
+                  disabled={isSubmitting}
                 />
               </div>
-              <p className="text-xs text-muted-foreground">
-                Must be at least 8 characters
-              </p>
+              {errors.password ? (
+                <p className="text-sm text-destructive">{errors.password}</p>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  Must be at least 6 characters
+                </p>
+              )}
             </div>
 
-            <Button type="submit" className="w-full gradient-primary border-0 shadow-glow">
-              Create Account
+            {/* Confirm Password */}
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirm Password <span className="text-destructive">*</span></Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  placeholder="••••••••"
+                  className={`pl-10 ${errors.confirmPassword ? "border-destructive" : ""}`}
+                  value={form.confirmPassword}
+                  onChange={(e) => handleChange("confirmPassword", e.target.value)}
+                  disabled={isSubmitting}
+                />
+              </div>
+              {errors.confirmPassword && (
+                <p className="text-sm text-destructive">{errors.confirmPassword}</p>
+              )}
+            </div>
+
+            {/* Role Dropdown */}
+            <div className="space-y-2">
+              <Label htmlFor="role">I am a <span className="text-destructive">*</span></Label>
+              <Select
+                value={form.role}
+                onValueChange={(value) => handleChange("role", value)}
+                disabled={isSubmitting}
+              >
+                <SelectTrigger className={errors.role ? "border-destructive" : ""}>
+                  <SelectValue placeholder="Select your role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="candidate">
+                    <div className="flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      <span>Candidate</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="hr">
+                    <div className="flex items-center gap-2">
+                      <Building2 className="h-4 w-4" />
+                      <span>HR Professional</span>
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              {errors.role && (
+                <p className="text-sm text-destructive">{errors.role}</p>
+              )}
+            </div>
+
+            <Button 
+              type="submit" 
+              className="w-full gradient-primary border-0 shadow-glow"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating Account...
+                </>
+              ) : (
+                "Create Account"
+              )}
             </Button>
           </form>
 
