@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Menu, X, User, BrainCircuit } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Menu, X, BrainCircuit, LogOut, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
 
 const navItems = [
   { name: "Home", path: "/" },
@@ -17,8 +18,16 @@ const navItems = [
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, loading, signOut } = useAuth();
 
   const isActive = (path: string) => location.pathname === path;
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+    setIsOpen(false);
+  };
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-card/80 backdrop-blur-md">
@@ -54,12 +63,23 @@ export function Navbar() {
 
           {/* Auth Buttons - Desktop */}
           <div className="hidden lg:flex items-center gap-3">
-            <Button variant="ghost" asChild>
-              <Link to="/login">Login</Link>
-            </Button>
-            <Button asChild className="gradient-primary border-0 shadow-glow">
-              <Link to="/register">Register</Link>
-            </Button>
+            {loading ? (
+              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            ) : user ? (
+              <Button variant="outline" onClick={handleSignOut}>
+                <LogOut className="h-4 w-4 mr-2" />
+                Sign Out
+              </Button>
+            ) : (
+              <>
+                <Button variant="ghost" asChild>
+                  <Link to="/login">Login</Link>
+                </Button>
+                <Button asChild className="gradient-primary border-0 shadow-glow">
+                  <Link to="/register">Register</Link>
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -94,16 +114,29 @@ export function Navbar() {
               </Link>
             ))}
             <div className="pt-4 mt-4 border-t flex flex-col gap-2">
-              <Button variant="outline" asChild className="w-full">
-                <Link to="/login" onClick={() => setIsOpen(false)}>
-                  Login
-                </Link>
-              </Button>
-              <Button asChild className="w-full gradient-primary border-0">
-                <Link to="/register" onClick={() => setIsOpen(false)}>
-                  Register
-                </Link>
-              </Button>
+              {loading ? (
+                <div className="flex justify-center py-2">
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                </div>
+              ) : user ? (
+                <Button variant="outline" onClick={handleSignOut} className="w-full">
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sign Out
+                </Button>
+              ) : (
+                <>
+                  <Button variant="outline" asChild className="w-full">
+                    <Link to="/login" onClick={() => setIsOpen(false)}>
+                      Login
+                    </Link>
+                  </Button>
+                  <Button asChild className="w-full gradient-primary border-0">
+                    <Link to="/register" onClick={() => setIsOpen(false)}>
+                      Register
+                    </Link>
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </div>
