@@ -47,6 +47,77 @@ export type Database = {
         }
         Relationships: []
       }
+      mock_interview_answers: {
+        Row: {
+          answer_text: string | null
+          answered_at: string | null
+          created_at: string
+          id: string
+          question_number: number
+          question_text: string
+          session_id: string
+        }
+        Insert: {
+          answer_text?: string | null
+          answered_at?: string | null
+          created_at?: string
+          id?: string
+          question_number: number
+          question_text: string
+          session_id: string
+        }
+        Update: {
+          answer_text?: string | null
+          answered_at?: string | null
+          created_at?: string
+          id?: string
+          question_number?: number
+          question_text?: string
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mock_interview_answers_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "mock_interview_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mock_interview_sessions: {
+        Row: {
+          completed_at: string | null
+          id: string
+          interview_type: string
+          role_level: string
+          started_at: string
+          status: string
+          total_questions: number
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          id?: string
+          interview_type: string
+          role_level: string
+          started_at?: string
+          status?: string
+          total_questions?: number
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          id?: string
+          interview_type?: string
+          role_level?: string
+          started_at?: string
+          status?: string
+          total_questions?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       resumes: {
         Row: {
           content_type: string

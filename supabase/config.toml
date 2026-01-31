@@ -2,3 +2,6 @@ project_id = "ducfdifmzdcmahfrijwj"
 
 [functions.screen-resume]
 verify_jwt = false
+
+[functions.generate-interview-question]
+verify_jwt = false
