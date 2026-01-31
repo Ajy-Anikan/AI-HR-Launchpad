@@ -140,6 +140,42 @@ export type Database = {
           },
         ]
       }
+      skill_progress: {
+        Row: {
+          communication_score: number
+          consistency_score: number | null
+          id: string
+          notes: string | null
+          overall_progress_score: number
+          recorded_at: string
+          source: string
+          technical_score: number
+          user_id: string
+        }
+        Insert: {
+          communication_score: number
+          consistency_score?: number | null
+          id?: string
+          notes?: string | null
+          overall_progress_score: number
+          recorded_at?: string
+          source?: string
+          technical_score: number
+          user_id: string
+        }
+        Update: {
+          communication_score?: number
+          consistency_score?: number | null
+          id?: string
+          notes?: string | null
+          overall_progress_score?: number
+          recorded_at?: string
+          source?: string
+          technical_score?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
