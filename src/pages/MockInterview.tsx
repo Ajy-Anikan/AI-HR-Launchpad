@@ -505,11 +505,17 @@ export default function MockInterview() {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button onClick={resetInterview} className="gradient-primary border-0 shadow-glow">
+            <Button asChild className="gradient-primary border-0 shadow-glow">
+              <Link to={`/interview-evaluation?session=${sessionId}`}>
+                <Sparkles className="mr-2 h-4 w-4" />
+                Get Feedback
+              </Link>
+            </Button>
+            <Button onClick={resetInterview} variant="outline">
               <Play className="mr-2 h-4 w-4" />
               Start Another Interview
             </Button>
-            <Button asChild variant="outline">
+            <Button asChild variant="ghost">
               <Link to="/candidate-dashboard">Back to Dashboard</Link>
             </Button>
           </div>

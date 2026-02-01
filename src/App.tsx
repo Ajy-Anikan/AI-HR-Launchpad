@@ -11,6 +11,7 @@ import Register from "./pages/Register";
 import CandidateDashboard from "./pages/CandidateDashboard";
 import HRDashboard from "./pages/HRDashboard";
 import MockInterview from "./pages/MockInterview";
+import InterviewEvaluation from "./pages/InterviewEvaluation";
 import ResumeAnalyzer from "./pages/ResumeAnalyzer";
 import SkillTracker from "./pages/SkillTracker";
 import CompanyPrepHub from "./pages/CompanyPrepHub";
@@ -34,6 +35,7 @@ const App = () => (
               <Route path="/candidate-dashboard" element={<CandidateDashboard />} />
               <Route path="/hr-dashboard" element={<HRDashboard />} />
               <Route path="/mock-interview" element={<MockInterview />} />
+              <Route path="/interview-evaluation" element={<InterviewEvaluation />} />
               <Route path="/resume-analyzer" element={<ResumeAnalyzer />} />
               <Route path="/skill-tracker" element={<SkillTracker />} />
               <Route path="/company-prep" element={<CompanyPrepHub />} />

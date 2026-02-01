@@ -14,6 +14,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      answer_evaluations: {
+        Row: {
+          answer_id: string
+          clarity_rating: string
+          depth_rating: string
+          evaluated_at: string
+          feedback_text: string
+          id: string
+          relevance_rating: string
+        }
+        Insert: {
+          answer_id: string
+          clarity_rating: string
+          depth_rating: string
+          evaluated_at?: string
+          feedback_text: string
+          id?: string
+          relevance_rating: string
+        }
+        Update: {
+          answer_id?: string
+          clarity_rating?: string
+          depth_rating?: string
+          evaluated_at?: string
+          feedback_text?: string
+          id?: string
+          relevance_rating?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "answer_evaluations_answer_id_fkey"
+            columns: ["answer_id"]
+            isOneToOne: true
+            referencedRelation: "mock_interview_answers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_requirements: {
         Row: {
           created_at: string
@@ -207,6 +245,44 @@ export type Database = {
             columns: ["resume_id"]
             isOneToOne: false
             referencedRelation: "resumes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      session_evaluations: {
+        Row: {
+          evaluated_at: string
+          gaps: string[]
+          id: string
+          improvement_tips: string[]
+          session_id: string
+          strengths: string[]
+          summary_message: string
+        }
+        Insert: {
+          evaluated_at?: string
+          gaps?: string[]
+          id?: string
+          improvement_tips?: string[]
+          session_id: string
+          strengths?: string[]
+          summary_message: string
+        }
+        Update: {
+          evaluated_at?: string
+          gaps?: string[]
+          id?: string
+          improvement_tips?: string[]
+          session_id?: string
+          strengths?: string[]
+          summary_message?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_evaluations_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: true
+            referencedRelation: "mock_interview_sessions"
             referencedColumns: ["id"]
           },
         ]
