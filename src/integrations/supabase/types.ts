@@ -52,6 +52,83 @@ export type Database = {
           },
         ]
       }
+      company_practice_answers: {
+        Row: {
+          answer_text: string | null
+          answered_at: string | null
+          created_at: string
+          id: string
+          question_number: number
+          question_text: string
+          session_id: string
+        }
+        Insert: {
+          answer_text?: string | null
+          answered_at?: string | null
+          created_at?: string
+          id?: string
+          question_number: number
+          question_text: string
+          session_id: string
+        }
+        Update: {
+          answer_text?: string | null
+          answered_at?: string | null
+          created_at?: string
+          id?: string
+          question_number?: number
+          question_text?: string
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_practice_answers_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "company_practice_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_practice_sessions: {
+        Row: {
+          company: string
+          completed_at: string | null
+          difficulty: string
+          id: string
+          practice_year: number | null
+          question_type: string
+          started_at: string
+          status: string
+          total_questions: number
+          user_id: string
+        }
+        Insert: {
+          company: string
+          completed_at?: string | null
+          difficulty: string
+          id?: string
+          practice_year?: number | null
+          question_type: string
+          started_at?: string
+          status?: string
+          total_questions?: number
+          user_id: string
+        }
+        Update: {
+          company?: string
+          completed_at?: string | null
+          difficulty?: string
+          id?: string
+          practice_year?: number | null
+          question_type?: string
+          started_at?: string
+          status?: string
+          total_questions?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       job_requirements: {
         Row: {
           created_at: string
