@@ -10,6 +10,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import CandidateDashboard from "./pages/CandidateDashboard";
 import HRDashboard from "./pages/HRDashboard";
+import CandidateProfile from "./pages/CandidateProfile";
 import MockInterview from "./pages/MockInterview";
 import InterviewEvaluation from "./pages/InterviewEvaluation";
 import ResumeAnalyzer from "./pages/ResumeAnalyzer";
@@ -34,6 +35,7 @@ const App = () => (
               <Route path="/register" element={<Register />} />
               <Route path="/candidate-dashboard" element={<CandidateDashboard />} />
               <Route path="/hr-dashboard" element={<HRDashboard />} />
+              <Route path="/candidate-profile/:candidateId" element={<CandidateProfile />} />
               <Route path="/mock-interview" element={<MockInterview />} />
               <Route path="/interview-evaluation" element={<InterviewEvaluation />} />
               <Route path="/resume-analyzer" element={<ResumeAnalyzer />} />

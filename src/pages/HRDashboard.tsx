@@ -1,25 +1,19 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { 
   Users, 
-  Briefcase, 
-  Calendar, 
-  TrendingUp,
-  UserPlus,
-  Clock,
-  CheckCircle2,
-  XCircle,
-  MoreHorizontal,
-  Star,
   FileText,
+  Activity,
   Search,
   Filter,
+  Eye,
+  AlertCircle,
+  Calendar,
   ChevronDown
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -29,140 +23,172 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { format } from "date-fns";
 
-interface ScreenedCandidate {
+interface CandidateData {
   id: string;
-  resume_id: string;
-  job_id: string;
-  match_score: number;
-  matched_skills: string[];
-  missing_skills: string[];
-  analysis: string;
-  screened_at: string;
-  resume: {
-    id: string;
-    user_id: string;
-    file_name: string;
-    skills: string[];
-    experience_years: number;
-    education: string;
-    summary: string;
-  };
-  job: {
-    id: string;
-    title: string;
-    required_skills: string[];
-  };
+  anonymizedId: string;
+  hasResume: boolean;
+  readinessScore: number | null;
+  lastActivityDate: string | null;
 }
 
-interface JobRequirement {
-  id: string;
-  title: string;
-  description: string | null;
-  required_skills: string[];
-  min_experience_years: number;
-  is_active: boolean;
-  created_at: string;
-}
-
-const stats = [
-  { icon: Users, label: "Total Candidates", value: "0", change: "", color: "bg-primary/10 text-primary", key: "candidates" },
-  { icon: Briefcase, label: "Open Positions", value: "0", change: "", color: "bg-emerald-100 text-emerald-600", key: "positions" },
-  { icon: Calendar, label: "Screened Today", value: "0", change: "", color: "bg-violet-100 text-violet-600", key: "screened" },
-  { icon: TrendingUp, label: "Avg Match Score", value: "0%", change: "", color: "bg-accent/10 text-accent", key: "avgScore" },
-];
-
-const getScoreColor = (score: number) => {
-  if (score >= 80) return "text-emerald-600 bg-emerald-100";
-  if (score >= 60) return "text-yellow-600 bg-yellow-100";
-  return "text-red-600 bg-red-100";
+const getReadinessLabel = (score: number | null): { label: string; color: string } => {
+  if (score === null) return { label: "N/A", color: "bg-muted text-muted-foreground" };
+  if (score >= 70) return { label: "High", color: "bg-emerald-100 text-emerald-700" };
+  if (score >= 40) return { label: "Medium", color: "bg-yellow-100 text-yellow-700" };
+  return { label: "Low", color: "bg-red-100 text-red-700" };
 };
 
-const getScoreLabel = (score: number) => {
-  if (score >= 80) return "Excellent Match";
-  if (score >= 60) return "Good Match";
-  if (score >= 40) return "Partial Match";
-  return "Low Match";
+const generateAnonymizedId = (userId: string): string => {
+  // Create a deterministic but anonymized ID from user_id
+  const hash = userId.split('').reduce((acc, char) => {
+    return ((acc << 5) - acc) + char.charCodeAt(0);
+  }, 0);
+  return `CAND-${Math.abs(hash).toString(16).toUpperCase().slice(0, 8)}`;
 };
 
 export default function HRDashboard() {
-  const { user, role } = useAuth();
+  const { user, role, loading: authLoading } = useAuth();
   const { toast } = useToast();
-  const [screenedCandidates, setScreenedCandidates] = useState<ScreenedCandidate[]>([]);
-  const [jobs, setJobs] = useState<JobRequirement[]>([]);
-  const [selectedJob, setSelectedJob] = useState<string>("all");
-  const [searchTerm, setSearchTerm] = useState("");
+  const navigate = useNavigate();
+  const [candidates, setCandidates] = useState<CandidateData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [statsData, setStatsData] = useState(stats);
+  const [resumeFilter, setResumeFilter] = useState<string>("all");
+  const [readinessFilter, setReadinessFilter] = useState<string>("all");
+  const [searchTerm, setSearchTerm] = useState("");
 
-  // Fetch data on mount
+  // Stats
+  const [totalCandidates, setTotalCandidates] = useState(0);
+  const [candidatesWithResume, setCandidatesWithResume] = useState(0);
+  const [candidatesWithActivity, setCandidatesWithActivity] = useState(0);
+
   useEffect(() => {
-    if (user && role === "hr") {
-      fetchData();
+    if (!authLoading && user && role === "hr") {
+      fetchCandidates();
     }
-  }, [user, role]);
+  }, [user, role, authLoading]);
 
-  const fetchData = async () => {
+  const fetchCandidates = async () => {
     setLoading(true);
     try {
-      // Fetch jobs
-      const { data: jobsData, error: jobsError } = await supabase
-        .from("job_requirements")
-        .select("*")
-        .order("created_at", { ascending: false });
+      // Get all candidate user IDs from user_roles
+      const { data: candidateRoles, error: rolesError } = await supabase
+        .from("user_roles")
+        .select("user_id, created_at")
+        .eq("role", "candidate");
 
-      if (jobsError) throw jobsError;
-      setJobs(jobsData || []);
+      if (rolesError) throw rolesError;
 
-      // Fetch screening results with resume and job data
-      const { data: screeningData, error: screeningError } = await supabase
-        .from("screening_results")
-        .select(`
-          *,
-          resume:resumes(id, user_id, file_name, skills, experience_years, education, summary),
-          job:job_requirements(id, title, required_skills)
-        `)
-        .order("match_score", { ascending: false });
+      if (!candidateRoles || candidateRoles.length === 0) {
+        setCandidates([]);
+        setTotalCandidates(0);
+        setCandidatesWithResume(0);
+        setCandidatesWithActivity(0);
+        setLoading(false);
+        return;
+      }
 
-      if (screeningError) throw screeningError;
-      setScreenedCandidates((screeningData || []) as unknown as ScreenedCandidate[]);
+      const candidateUserIds = candidateRoles.map(r => r.user_id);
 
-      // Fetch all resumes count
-      const { count: resumeCount } = await supabase
+      // Fetch resumes for these candidates
+      const { data: resumes, error: resumeError } = await supabase
         .from("resumes")
-        .select("*", { count: "exact", head: true });
+        .select("user_id, uploaded_at")
+        .in("user_id", candidateUserIds);
 
-      // Calculate stats
-      const today = new Date().toISOString().split("T")[0];
-      const screenedToday = (screeningData || []).filter(
-        (s) => s.screened_at.startsWith(today)
-      ).length;
+      if (resumeError) throw resumeError;
 
-      const avgScore = screeningData && screeningData.length > 0
-        ? Math.round(screeningData.reduce((acc, s) => acc + s.match_score, 0) / screeningData.length)
-        : 0;
+      // Fetch latest skill progress for readiness scores
+      const { data: skillProgress, error: skillError } = await supabase
+        .from("skill_progress")
+        .select("user_id, overall_progress_score, recorded_at")
+        .in("user_id", candidateUserIds)
+        .order("recorded_at", { ascending: false });
 
-      setStatsData([
-        { ...stats[0], value: String(resumeCount || 0) },
-        { ...stats[1], value: String(jobsData?.filter(j => j.is_active).length || 0) },
-        { ...stats[2], value: String(screenedToday) },
-        { ...stats[3], value: `${avgScore}%` },
-      ]);
+      if (skillError) throw skillError;
+
+      // Fetch mock interview activity
+      const { data: mockSessions, error: mockError } = await supabase
+        .from("mock_interview_sessions")
+        .select("user_id, started_at")
+        .in("user_id", candidateUserIds)
+        .order("started_at", { ascending: false });
+
+      if (mockError) throw mockError;
+
+      // Fetch company practice activity
+      const { data: practiceSessions, error: practiceError } = await supabase
+        .from("company_practice_sessions")
+        .select("user_id, started_at")
+        .in("user_id", candidateUserIds)
+        .order("started_at", { ascending: false });
+
+      if (practiceError) throw practiceError;
+
+      // Build candidate data
+      const resumeMap = new Map(resumes?.map(r => [r.user_id, r]) || []);
+      
+      // Get latest skill score per user
+      const skillMap = new Map<string, { score: number; date: string }>();
+      skillProgress?.forEach(sp => {
+        if (!skillMap.has(sp.user_id)) {
+          skillMap.set(sp.user_id, { 
+            score: sp.overall_progress_score, 
+            date: sp.recorded_at 
+          });
+        }
+      });
+
+      // Get latest activity per user
+      const activityMap = new Map<string, string>();
+      mockSessions?.forEach(ms => {
+        if (!activityMap.has(ms.user_id)) {
+          activityMap.set(ms.user_id, ms.started_at);
+        }
+      });
+      practiceSessions?.forEach(ps => {
+        const existing = activityMap.get(ps.user_id);
+        if (!existing || new Date(ps.started_at) > new Date(existing)) {
+          activityMap.set(ps.user_id, ps.started_at);
+        }
+      });
+
+      const candidateData: CandidateData[] = candidateRoles.map(cr => {
+        const resume = resumeMap.get(cr.user_id);
+        const skill = skillMap.get(cr.user_id);
+        const lastActivity = activityMap.get(cr.user_id);
+
+        return {
+          id: cr.user_id,
+          anonymizedId: generateAnonymizedId(cr.user_id),
+          hasResume: !!resume,
+          readinessScore: skill?.score || null,
+          lastActivityDate: lastActivity || skill?.date || (resume ? resume.uploaded_at : null),
+        };
+      });
+
+      setCandidates(candidateData);
+      setTotalCandidates(candidateData.length);
+      setCandidatesWithResume(candidateData.filter(c => c.hasResume).length);
+      setCandidatesWithActivity(candidateData.filter(c => c.lastActivityDate !== null).length);
+
     } catch (error) {
-      console.error("Error fetching data:", error);
+      console.error("Error fetching candidates:", error);
       toast({
         title: "Error loading data",
-        description: "Failed to load dashboard data",
+        description: "Failed to load candidate data",
         variant: "destructive",
       });
     } finally {
@@ -170,59 +196,30 @@ export default function HRDashboard() {
     }
   };
 
-  const screenAllResumes = async (jobId: string) => {
-    try {
-      toast({
-        title: "Screening started",
-        description: "Analyzing all resumes against job requirements...",
-      });
+  const filteredCandidates = candidates.filter(candidate => {
+    // Resume filter
+    if (resumeFilter === "yes" && !candidate.hasResume) return false;
+    if (resumeFilter === "no" && candidate.hasResume) return false;
 
-      // Fetch all resumes that haven't been screened for this job
-      const { data: resumes, error: resumeError } = await supabase
-        .from("resumes")
-        .select("*")
-        .not("skills", "is", null);
-
-      if (resumeError) throw resumeError;
-
-      // Screen each resume
-      for (const resume of resumes || []) {
-        await supabase.functions.invoke("screen-resume", {
-          body: {
-            resumeText: `Skills: ${resume.skills?.join(", ")}\nExperience: ${resume.experience_years} years\nEducation: ${resume.education}\nSummary: ${resume.summary}`,
-            resumeId: resume.id,
-            jobId,
-          },
-        });
-      }
-
-      toast({
-        title: "Screening complete",
-        description: `Screened ${resumes?.length || 0} candidates`,
-      });
-
-      fetchData();
-    } catch (error) {
-      console.error("Screening error:", error);
-      toast({
-        title: "Screening failed",
-        description: "An error occurred during screening",
-        variant: "destructive",
-      });
+    // Readiness filter
+    if (readinessFilter !== "all") {
+      const { label } = getReadinessLabel(candidate.readinessScore);
+      if (readinessFilter === "high" && label !== "High") return false;
+      if (readinessFilter === "medium" && label !== "Medium") return false;
+      if (readinessFilter === "low" && label !== "Low") return false;
+      if (readinessFilter === "na" && label !== "N/A") return false;
     }
-  };
 
-  const filteredCandidates = screenedCandidates.filter((candidate) => {
-    const matchesJob = selectedJob === "all" || candidate.job_id === selectedJob;
-    const matchesSearch = searchTerm === "" || 
-      candidate.resume?.file_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      candidate.resume?.skills?.some(s => s.toLowerCase().includes(searchTerm.toLowerCase()));
-    return matchesJob && matchesSearch;
+    // Search by anonymized ID
+    if (searchTerm && !candidate.anonymizedId.toLowerCase().includes(searchTerm.toLowerCase())) {
+      return false;
+    }
+
+    return true;
   });
 
-  const topCandidates = filteredCandidates.filter(c => c.match_score >= 70);
-
-  if (role !== "hr") {
+  // Access denied for non-HR users
+  if (!authLoading && role !== "hr") {
     return (
       <div className="container py-8">
         <Card className="max-w-md mx-auto">
@@ -241,54 +238,59 @@ export default function HRDashboard() {
   return (
     <div className="container py-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">HR Dashboard</h1>
-          <p className="text-muted-foreground">
-            Screen candidates and manage your recruitment pipeline.
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="outline">
-                <Briefcase className="mr-2 h-4 w-4" />
-                Add Job
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add Job Requirement</DialogTitle>
-                <DialogDescription>
-                  Create a new job to screen candidates against.
-                </DialogDescription>
-              </DialogHeader>
-              <AddJobForm onSuccess={fetchData} />
-            </DialogContent>
-          </Dialog>
-        </div>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">HR Dashboard</h1>
+        <p className="text-muted-foreground">
+          View candidate information for observation and shortlisting support.
+        </p>
       </div>
 
-      {/* Stats */}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {statsData.map((stat) => (
-          <Card key={stat.label} className="card-hover">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div className={`h-12 w-12 rounded-xl ${stat.color} flex items-center justify-center`}>
-                  <stat.icon className="h-6 w-6" />
-                </div>
-                {stat.change && (
-                  <span className="text-xs font-medium text-emerald-600 bg-emerald-100 px-2 py-1 rounded-full">
-                    {stat.change}
-                  </span>
-                )}
+      {/* Disclaimer Alert */}
+      <Alert className="mb-6 border-amber-200 bg-amber-50">
+        <AlertCircle className="h-4 w-4 text-amber-600" />
+        <AlertDescription className="text-amber-800">
+          <strong>Note:</strong> All scores shown are indicative self-assessments and should not be used as final hiring criteria. 
+          This dashboard is for observation purposes only.
+        </AlertDescription>
+      </Alert>
+
+      {/* Overview Stats */}
+      <div className="grid sm:grid-cols-3 gap-4 mb-8">
+        <Card className="card-hover">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="h-12 w-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                <Users className="h-6 w-6" />
               </div>
-              <p className="text-3xl font-bold mt-4">{stat.value}</p>
-              <p className="text-sm text-muted-foreground">{stat.label}</p>
-            </CardContent>
-          </Card>
-        ))}
+            </div>
+            <p className="text-3xl font-bold mt-4">{totalCandidates}</p>
+            <p className="text-sm text-muted-foreground">Total Candidates</p>
+          </CardContent>
+        </Card>
+
+        <Card className="card-hover">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="h-12 w-12 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                <FileText className="h-6 w-6" />
+              </div>
+            </div>
+            <p className="text-3xl font-bold mt-4">{candidatesWithResume}</p>
+            <p className="text-sm text-muted-foreground">Resume Uploaded</p>
+          </CardContent>
+        </Card>
+
+        <Card className="card-hover">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="h-12 w-12 rounded-xl bg-violet-100 text-violet-600 flex items-center justify-center">
+                <Activity className="h-6 w-6" />
+              </div>
+            </div>
+            <p className="text-3xl font-bold mt-4">{candidatesWithActivity}</p>
+            <p className="text-sm text-muted-foreground">Practice Activity</p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Filters */}
@@ -298,358 +300,163 @@ export default function HRDashboard() {
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search by name or skills..."
+                placeholder="Search by Candidate ID..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
               />
             </div>
-            <Select value={selectedJob} onValueChange={setSelectedJob}>
-              <SelectTrigger className="w-full sm:w-[200px]">
-                <SelectValue placeholder="Filter by job" />
+            <Select value={resumeFilter} onValueChange={setResumeFilter}>
+              <SelectTrigger className="w-full sm:w-[180px]">
+                <Filter className="h-4 w-4 mr-2" />
+                <SelectValue placeholder="Resume Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Jobs</SelectItem>
-                {jobs.map((job) => (
-                  <SelectItem key={job.id} value={job.id}>
-                    {job.title}
-                  </SelectItem>
-                ))}
+                <SelectItem value="all">All Resumes</SelectItem>
+                <SelectItem value="yes">Uploaded</SelectItem>
+                <SelectItem value="no">Not Uploaded</SelectItem>
               </SelectContent>
             </Select>
-            {selectedJob !== "all" && (
-              <Button onClick={() => screenAllResumes(selectedJob)} variant="outline">
-                <Filter className="mr-2 h-4 w-4" />
-                Screen All
-              </Button>
-            )}
+            <Select value={readinessFilter} onValueChange={setReadinessFilter}>
+              <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectValue placeholder="Readiness Score" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Scores</SelectItem>
+                <SelectItem value="high">High (70+)</SelectItem>
+                <SelectItem value="medium">Medium (40-69)</SelectItem>
+                <SelectItem value="low">Low (&lt;40)</SelectItem>
+                <SelectItem value="na">N/A</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
       </Card>
 
-      <div className="grid lg:grid-cols-3 gap-6">
-        {/* Screened Candidates List */}
-        <div className="lg:col-span-2">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>Screened Candidates</CardTitle>
-                <CardDescription>
-                  {filteredCandidates.length} candidates matched
-                </CardDescription>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <div className="text-center py-8 text-muted-foreground">Loading...</div>
-              ) : filteredCandidates.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>No screened candidates yet.</p>
-                  <p className="text-sm">Add a job and screen candidates to see results.</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {filteredCandidates.map((candidate) => (
-                    <CandidateCard key={candidate.id} candidate={candidate} />
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Sidebar */}
-        <div className="space-y-6">
-          {/* Top Candidates */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Star className="h-5 w-5 text-yellow-500" />
-                Top Candidates
-              </CardTitle>
-              <CardDescription>Score 70% or higher</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {topCandidates.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  No top candidates yet
-                </p>
-              ) : (
-                topCandidates.slice(0, 5).map((candidate) => (
-                  <div
-                    key={candidate.id}
-                    className="flex items-center justify-between p-3 rounded-lg bg-muted/30"
-                  >
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarFallback className="text-xs gradient-primary text-primary-foreground">
-                          {candidate.resume?.file_name?.slice(0, 2).toUpperCase() || "?"}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="text-sm font-medium truncate max-w-[120px]">
-                          {candidate.resume?.file_name?.split(".")[0] || "Unknown"}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {candidate.job?.title}
-                        </p>
+      {/* Candidate List */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Candidate List</CardTitle>
+          <CardDescription>
+            {filteredCandidates.length} of {candidates.length} candidates shown (read-only view)
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="text-center py-8 text-muted-foreground">Loading candidates...</div>
+          ) : filteredCandidates.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>No candidates found matching your filters.</p>
+            </div>
+          ) : (
+            <>
+              {/* Mobile Card View */}
+              <div className="block md:hidden space-y-4">
+                {filteredCandidates.map((candidate) => {
+                  const readiness = getReadinessLabel(candidate.readinessScore);
+                  return (
+                    <Card key={candidate.id} className="p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="font-mono font-medium text-sm">{candidate.anonymizedId}</span>
+                        <Badge className={readiness.color}>
+                          {readiness.label}
+                          {candidate.readinessScore !== null && ` (${candidate.readinessScore})`}
+                        </Badge>
                       </div>
-                    </div>
-                    <Badge className={getScoreColor(candidate.match_score)}>
-                      {candidate.match_score}%
-                    </Badge>
-                  </div>
-                ))
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Jobs Overview */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Active Jobs</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {jobs.filter(j => j.is_active).length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  No active jobs
-                </p>
-              ) : (
-                jobs.filter(j => j.is_active).map((job) => (
-                  <div
-                    key={job.id}
-                    className="p-3 rounded-lg border bg-card"
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="font-medium text-sm">{job.title}</p>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => {
-                          setSelectedJob(job.id);
-                          screenAllResumes(job.id);
-                        }}
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Resume:</span>
+                          <Badge variant={candidate.hasResume ? "default" : "secondary"}>
+                            {candidate.hasResume ? "Uploaded" : "Not Uploaded"}
+                          </Badge>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Last Activity:</span>
+                          <span>
+                            {candidate.lastActivityDate 
+                              ? format(new Date(candidate.lastActivityDate), "MMM d, yyyy")
+                              : "—"
+                            }
+                          </span>
+                        </div>
+                      </div>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full mt-4"
+                        onClick={() => navigate(`/candidate-profile/${candidate.id}`)}
                       >
-                        Screen
+                        <Eye className="h-4 w-4 mr-2" />
+                        View Profile
                       </Button>
-                    </div>
-                    <div className="flex flex-wrap gap-1">
-                      {job.required_skills.slice(0, 3).map((skill, i) => (
-                        <Badge key={i} variant="outline" className="text-xs">
-                          {skill}
-                        </Badge>
-                      ))}
-                      {job.required_skills.length > 3 && (
-                        <Badge variant="outline" className="text-xs">
-                          +{job.required_skills.length - 3}
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                ))
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function CandidateCard({ candidate }: { candidate: ScreenedCandidate }) {
-  const [expanded, setExpanded] = useState(false);
-
-  return (
-    <div className="p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
-      <div className="flex items-start justify-between">
-        <div className="flex items-center gap-4">
-          <Avatar className="h-12 w-12">
-            <AvatarFallback className="gradient-primary text-primary-foreground">
-              {candidate.resume?.file_name?.slice(0, 2).toUpperCase() || "?"}
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <p className="font-medium">
-              {candidate.resume?.file_name?.split(".")[0] || "Unknown Candidate"}
-            </p>
-            <p className="text-sm text-muted-foreground">
-              {candidate.resume?.experience_years || 0} years exp • {candidate.job?.title}
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="text-right">
-            <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium ${getScoreColor(candidate.match_score)}`}>
-              {candidate.match_score}%
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {getScoreLabel(candidate.match_score)}
-            </p>
-          </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setExpanded(!expanded)}
-          >
-            <ChevronDown className={`h-4 w-4 transition-transform ${expanded ? "rotate-180" : ""}`} />
-          </Button>
-        </div>
-      </div>
-
-      {/* Match Score Bar */}
-      <div className="mt-4">
-        <Progress value={candidate.match_score} className="h-2" />
-      </div>
-
-      {/* Expanded Details */}
-      {expanded && (
-        <div className="mt-4 pt-4 border-t space-y-4">
-          {/* Analysis */}
-          <div>
-            <p className="text-sm font-medium mb-1">AI Analysis</p>
-            <p className="text-sm text-muted-foreground">{candidate.analysis}</p>
-          </div>
-
-          {/* Skills comparison */}
-          <div className="grid sm:grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm font-medium mb-2 text-emerald-600">
-                Matched Skills ({candidate.matched_skills?.length || 0})
-              </p>
-              <div className="flex flex-wrap gap-1">
-                {candidate.matched_skills?.map((skill, i) => (
-                  <Badge key={i} className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100">
-                    {skill}
-                  </Badge>
-                ))}
+                    </Card>
+                  );
+                })}
               </div>
-            </div>
-            <div>
-              <p className="text-sm font-medium mb-2 text-red-600">
-                Missing Skills ({candidate.missing_skills?.length || 0})
-              </p>
-              <div className="flex flex-wrap gap-1">
-                {candidate.missing_skills?.map((skill, i) => (
-                  <Badge key={i} variant="outline" className="border-red-200 text-red-600">
-                    {skill}
-                  </Badge>
-                ))}
+
+              {/* Desktop Table View */}
+              <div className="hidden md:block overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Candidate ID</TableHead>
+                      <TableHead>Resume Status</TableHead>
+                      <TableHead>
+                        Self-Readiness Score
+                        <span className="text-xs text-muted-foreground block">
+                          (indicative only)
+                        </span>
+                      </TableHead>
+                      <TableHead>Last Activity</TableHead>
+                      <TableHead className="text-right">Action</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredCandidates.map((candidate) => {
+                      const readiness = getReadinessLabel(candidate.readinessScore);
+                      return (
+                        <TableRow key={candidate.id}>
+                          <TableCell className="font-mono font-medium">
+                            {candidate.anonymizedId}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={candidate.hasResume ? "default" : "secondary"}>
+                              {candidate.hasResume ? "Uploaded" : "Not Uploaded"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={readiness.color}>
+                              {readiness.label}
+                              {candidate.readinessScore !== null && ` (${candidate.readinessScore})`}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {candidate.lastActivityDate 
+                              ? format(new Date(candidate.lastActivityDate), "MMM d, yyyy")
+                              : "—"
+                            }
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => navigate(`/candidate-profile/${candidate.id}`)}
+                            >
+                              <Eye className="h-4 w-4 mr-2" />
+                              View Profile
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
               </div>
-            </div>
-          </div>
-
-          {/* Education & Summary */}
-          <div className="grid sm:grid-cols-2 gap-4 text-sm">
-            <div>
-              <p className="font-medium">Education</p>
-              <p className="text-muted-foreground">{candidate.resume?.education || "N/A"}</p>
-            </div>
-            <div>
-              <p className="font-medium">Summary</p>
-              <p className="text-muted-foreground line-clamp-2">
-                {candidate.resume?.summary || "N/A"}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+            </>
+          )}
+        </CardContent>
+      </Card>
     </div>
-  );
-}
-
-function AddJobForm({ onSuccess }: { onSuccess: () => void }) {
-  const { user } = useAuth();
-  const { toast } = useToast();
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [skills, setSkills] = useState("");
-  const [minExperience, setMinExperience] = useState("0");
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user) return;
-
-    setLoading(true);
-    try {
-      const skillsArray = skills.split(",").map(s => s.trim()).filter(Boolean);
-      
-      const { error } = await supabase
-        .from("job_requirements")
-        .insert({
-          title,
-          description: description || null,
-          required_skills: skillsArray,
-          min_experience_years: parseInt(minExperience) || 0,
-          created_by: user.id,
-        });
-
-      if (error) throw error;
-
-      toast({
-        title: "Job created",
-        description: "You can now screen candidates against this job.",
-      });
-
-      onSuccess();
-      setTitle("");
-      setDescription("");
-      setSkills("");
-      setMinExperience("0");
-    } catch (error) {
-      console.error("Error creating job:", error);
-      toast({
-        title: "Error",
-        description: "Failed to create job requirement",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label className="text-sm font-medium">Job Title *</label>
-        <Input
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="e.g., Senior Frontend Developer"
-          required
-        />
-      </div>
-      <div>
-        <label className="text-sm font-medium">Description</label>
-        <Input
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="Brief job description"
-        />
-      </div>
-      <div>
-        <label className="text-sm font-medium">Required Skills *</label>
-        <Input
-          value={skills}
-          onChange={(e) => setSkills(e.target.value)}
-          placeholder="React, TypeScript, Node.js (comma-separated)"
-          required
-        />
-      </div>
-      <div>
-        <label className="text-sm font-medium">Min. Experience (years)</label>
-        <Input
-          type="number"
-          value={minExperience}
-          onChange={(e) => setMinExperience(e.target.value)}
-          min="0"
-          max="20"
-        />
-      </div>
-      <Button type="submit" className="w-full gradient-primary border-0" disabled={loading}>
-        {loading ? "Creating..." : "Create Job"}
-      </Button>
-    </form>
   );
 }
