@@ -1,35 +1,34 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { 
-  ArrowLeft, 
-  Users, 
-  FileText, 
-  Activity, 
-  Calendar,
-  AlertCircle,
-  Briefcase,
-  BookOpen
-} from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArrowLeft, Users, BookOpen, AlertCircle } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { format } from "date-fns";
+
+import { CandidateOverviewCard } from "@/components/hr/CandidateOverviewCard";
+import { SkillSummaryCard } from "@/components/hr/SkillSummaryCard";
+import { ProgressGrowthCard, TrendType } from "@/components/hr/ProgressGrowthCard";
+import { PracticeActivityCard } from "@/components/hr/PracticeActivityCard";
+import { HRNotesCard } from "@/components/hr/HRNotesCard";
 
 interface CandidateProfileData {
   anonymizedId: string;
   hasResume: boolean;
   resumeUploadDate: string | null;
-  skills: string[];
+  technicalSkills: string[];
+  softSkills: string[];
   experienceYears: number | null;
   readinessScore: number | null;
+  technicalTrend: TrendType;
+  communicationTrend: TrendType;
   mockInterviewCount: number;
   companyPracticeCount: number;
   lastActivityDate: string | null;
+  lastPracticeDate: string | null;
+  hrNote: string;
 }
 
 const generateAnonymizedId = (userId: string): string => {
@@ -39,16 +38,23 @@ const generateAnonymizedId = (userId: string): string => {
   return `CAND-${Math.abs(hash).toString(16).toUpperCase().slice(0, 8)}`;
 };
 
-const getReadinessLabel = (score: number | null): { label: string; color: string } => {
-  if (score === null) return { label: "Not Available", color: "bg-muted text-muted-foreground" };
-  if (score >= 70) return { label: "High", color: "bg-emerald-100 text-emerald-700" };
-  if (score >= 40) return { label: "Medium", color: "bg-yellow-100 text-yellow-700" };
-  return { label: "Low", color: "bg-red-100 text-red-700" };
+const calculateTrend = (scores: number[]): TrendType => {
+  if (scores.length < 2) return null;
+  
+  // Compare average of recent vs older scores
+  const midpoint = Math.floor(scores.length / 2);
+  const recentAvg = scores.slice(0, midpoint).reduce((a, b) => a + b, 0) / midpoint;
+  const olderAvg = scores.slice(midpoint).reduce((a, b) => a + b, 0) / (scores.length - midpoint);
+  
+  const diff = recentAvg - olderAvg;
+  if (diff > 5) return "improving";
+  if (diff < -5) return "needs_attention";
+  return "stable";
 };
 
 export default function CandidateProfile() {
   const { candidateId } = useParams<{ candidateId: string }>();
-  const { role, loading: authLoading } = useAuth();
+  const { user, role, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<CandidateProfileData | null>(null);
@@ -61,7 +67,7 @@ export default function CandidateProfile() {
   }, [candidateId, role, authLoading]);
 
   const fetchCandidateProfile = async () => {
-    if (!candidateId) return;
+    if (!candidateId || !user) return;
     
     setLoading(true);
     try {
@@ -93,16 +99,20 @@ export default function CandidateProfile() {
 
       if (resumeError && resumeError.code !== "PGRST116") throw resumeError;
 
-      // Fetch latest skill progress
-      const { data: skillData, error: skillError } = await supabase
+      // Fetch skill progress history for trends
+      const { data: skillHistory, error: skillHistoryError } = await supabase
         .from("skill_progress")
-        .select("overall_progress_score, recorded_at")
+        .select("technical_score, communication_score, overall_progress_score, recorded_at")
         .eq("user_id", candidateId)
         .order("recorded_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        .limit(10);
 
-      if (skillError && skillError.code !== "PGRST116") throw skillError;
+      if (skillHistoryError && skillHistoryError.code !== "PGRST116") throw skillHistoryError;
+
+      // Calculate trends from history
+      const technicalScores = skillHistory?.map(s => s.technical_score) || [];
+      const communicationScores = skillHistory?.map(s => s.communication_score) || [];
+      const latestScore = skillHistory?.[0]?.overall_progress_score || null;
 
       // Fetch mock interview count
       const { count: mockCount, error: mockError } = await supabase
@@ -120,7 +130,7 @@ export default function CandidateProfile() {
 
       if (practiceError) throw practiceError;
 
-      // Determine last activity
+      // Determine last activity and last practice
       const { data: lastMock } = await supabase
         .from("mock_interview_sessions")
         .select("started_at")
@@ -138,24 +148,41 @@ export default function CandidateProfile() {
         .maybeSingle();
 
       let lastActivity = null;
+      let lastPracticeDate = null;
+      
       if (lastMock?.started_at && lastPractice?.started_at) {
         lastActivity = new Date(lastMock.started_at) > new Date(lastPractice.started_at) 
           ? lastMock.started_at 
           : lastPractice.started_at;
+        lastPracticeDate = lastActivity;
       } else {
-        lastActivity = lastMock?.started_at || lastPractice?.started_at || skillData?.recorded_at || null;
+        lastActivity = lastMock?.started_at || lastPractice?.started_at || skillHistory?.[0]?.recorded_at || null;
+        lastPracticeDate = lastMock?.started_at || lastPractice?.started_at || null;
       }
+
+      // Fetch HR's existing note for this candidate
+      const { data: noteData } = await supabase
+        .from("hr_candidate_notes")
+        .select("note_text")
+        .eq("hr_user_id", user.id)
+        .eq("candidate_id", candidateId)
+        .maybeSingle();
 
       setProfile({
         anonymizedId: generateAnonymizedId(candidateId),
         hasResume: !!resumeData,
         resumeUploadDate: resumeData?.uploaded_at || null,
-        skills: resumeData?.skills || [],
+        technicalSkills: resumeData?.skills || [],
+        softSkills: [],
         experienceYears: resumeData?.experience_years || null,
-        readinessScore: skillData?.overall_progress_score || null,
+        readinessScore: latestScore,
+        technicalTrend: calculateTrend(technicalScores),
+        communicationTrend: calculateTrend(communicationScores),
         mockInterviewCount: mockCount || 0,
         companyPracticeCount: practiceCount || 0,
         lastActivityDate: lastActivity,
+        lastPracticeDate: lastPracticeDate,
+        hrNote: noteData?.note_text || "",
       });
 
     } catch (error) {
@@ -217,10 +244,8 @@ export default function CandidateProfile() {
     );
   }
 
-  const readiness = getReadinessLabel(profile.readinessScore);
-
   return (
-    <div className="container py-8 max-w-4xl">
+    <div className="container py-8 max-w-5xl">
       {/* Back Button */}
       <Button 
         variant="ghost" 
@@ -238,156 +263,55 @@ export default function CandidateProfile() {
       </div>
 
       {/* Disclaimer */}
-      <Alert className="mb-6 border-amber-200 bg-amber-50">
-        <AlertCircle className="h-4 w-4 text-amber-600" />
-        <AlertDescription className="text-amber-800">
+      <Alert className="mb-6 border-warning/50 bg-warning/10">
+        <AlertCircle className="h-4 w-4 text-warning" />
+        <AlertDescription className="text-warning-foreground">
           <strong>Note:</strong> This is a read-only view for observation purposes. 
           All scores are self-reported and indicative only. Personal identifiers are hidden to promote unbiased evaluation.
         </AlertDescription>
       </Alert>
 
       <div className="grid md:grid-cols-2 gap-6">
-        {/* Resume Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              Resume Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span className="text-muted-foreground">Status</span>
-              <Badge variant={profile.hasResume ? "default" : "secondary"}>
-                {profile.hasResume ? "Uploaded" : "Not Uploaded"}
-              </Badge>
-            </div>
-            {profile.hasResume && (
-              <>
-                <Separator />
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Upload Date</span>
-                  <span>
-                    {profile.resumeUploadDate 
-                      ? format(new Date(profile.resumeUploadDate), "MMM d, yyyy")
-                      : "—"
-                    }
-                  </span>
-                </div>
-                {profile.experienceYears !== null && (
-                  <>
-                    <Separator />
-                    <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">Experience</span>
-                      <span>{profile.experienceYears} years</span>
-                    </div>
-                  </>
-                )}
-                {profile.skills.length > 0 && (
-                  <>
-                    <Separator />
-                    <div>
-                      <span className="text-muted-foreground block mb-2">Skills</span>
-                      <div className="flex flex-wrap gap-1">
-                        {profile.skills.slice(0, 10).map((skill, i) => (
-                          <Badge key={i} variant="outline" className="text-xs">
-                            {skill}
-                          </Badge>
-                        ))}
-                        {profile.skills.length > 10 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{profile.skills.length - 10} more
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                  </>
-                )}
-              </>
-            )}
-          </CardContent>
-        </Card>
+        {/* Candidate Overview */}
+        <CandidateOverviewCard
+          anonymizedId={profile.anonymizedId}
+          hasResume={profile.hasResume}
+          resumeUploadDate={profile.resumeUploadDate}
+          lastActivityDate={profile.lastActivityDate}
+        />
 
-        {/* Readiness Score */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Activity className="h-5 w-5" />
-              Self-Readiness Score
-            </CardTitle>
-            <CardDescription>
-              Self-assessed score (indicative, not final)
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center py-6">
-              {profile.readinessScore !== null ? (
-                <>
-                  <div className="text-5xl font-bold mb-2">{profile.readinessScore}</div>
-                  <Badge className={`${readiness.color} text-lg px-4 py-1`}>
-                    {readiness.label}
-                  </Badge>
-                </>
-              ) : (
-                <div className="text-muted-foreground">
-                  <Activity className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                  <p>No readiness score available</p>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+        {/* Progress & Growth */}
+        <ProgressGrowthCard
+          readinessScore={profile.readinessScore}
+          technicalTrend={profile.technicalTrend}
+          communicationTrend={profile.communicationTrend}
+        />
+
+        {/* Skill Summary */}
+        <SkillSummaryCard
+          technicalSkills={profile.technicalSkills}
+          softSkills={profile.softSkills}
+          experienceYears={profile.experienceYears}
+        />
 
         {/* Practice Activity */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Briefcase className="h-5 w-5" />
-              Practice Activity
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span className="text-muted-foreground">Mock Interviews</span>
-              <span className="font-semibold">{profile.mockInterviewCount} sessions</span>
-            </div>
-            <Separator />
-            <div className="flex justify-between items-center">
-              <span className="text-muted-foreground">Company Practice</span>
-              <span className="font-semibold">{profile.companyPracticeCount} sessions</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Last Activity */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              Last Activity
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center py-6">
-              {profile.lastActivityDate ? (
-                <>
-                  <div className="text-2xl font-semibold">
-                    {format(new Date(profile.lastActivityDate), "MMMM d, yyyy")}
-                  </div>
-                  <p className="text-muted-foreground mt-1">
-                    {format(new Date(profile.lastActivityDate), "h:mm a")}
-                  </p>
-                </>
-              ) : (
-                <div className="text-muted-foreground">
-                  <Calendar className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                  <p>No activity recorded</p>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+        <PracticeActivityCard
+          mockInterviewCount={profile.mockInterviewCount}
+          companyPracticeCount={profile.companyPracticeCount}
+          lastPracticeDate={profile.lastPracticeDate}
+        />
       </div>
+
+      {/* HR Notes - Full Width */}
+      {user && (
+        <div className="mt-6">
+          <HRNotesCard
+            candidateId={candidateId!}
+            hrUserId={user.id}
+            initialNote={profile.hrNote}
+          />
+        </div>
+      )}
 
       {/* Footer Note */}
       <div className="mt-8 p-4 rounded-lg bg-muted/30 text-center">

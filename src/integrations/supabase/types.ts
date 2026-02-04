@@ -129,6 +129,33 @@ export type Database = {
         }
         Relationships: []
       }
+      hr_candidate_notes: {
+        Row: {
+          candidate_id: string
+          created_at: string
+          hr_user_id: string
+          id: string
+          note_text: string
+          updated_at: string
+        }
+        Insert: {
+          candidate_id: string
+          created_at?: string
+          hr_user_id: string
+          id?: string
+          note_text: string
+          updated_at?: string
+        }
+        Update: {
+          candidate_id?: string
+          created_at?: string
+          hr_user_id?: string
+          id?: string
+          note_text?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       job_requirements: {
         Row: {
           created_at: string
