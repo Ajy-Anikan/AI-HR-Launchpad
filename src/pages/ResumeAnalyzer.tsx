@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { FileText, Upload, CheckCircle, AlertCircle, Loader2, X, FileUp } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -36,36 +36,40 @@ export default function ResumeAnalyzer() {
   const [resumeData, setResumeData] = useState<ResumeData | null>(null);
   const [existingResume, setExistingResume] = useState<Resume | null>(null);
 
+  const fetchExistingResume = useCallback(async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from("resumes")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("uploaded_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (!error && data) {
+        setExistingResume(data as Resume);
+        if (data.skills) {
+          setResumeData({
+            skills: data.skills,
+            experience_years: data.experience_years || 0,
+            education: data.education || "",
+            summary: data.summary || "",
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching existing resume:", error);
+    }
+  }, [user]);
+
   // Fetch existing resume on mount
-  useState(() => {
+  useEffect(() => {
     if (user) {
       fetchExistingResume();
     }
-  });
-
-  const fetchExistingResume = async () => {
-    if (!user) return;
-    
-    const { data, error } = await supabase
-      .from("resumes")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("uploaded_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (!error && data) {
-      setExistingResume(data as Resume);
-      if (data.skills) {
-        setResumeData({
-          skills: data.skills,
-          experience_years: data.experience_years || 0,
-          education: data.education || "",
-          summary: data.summary || "",
-        });
-      }
-    }
-  };
+  }, [user, fetchExistingResume]);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
