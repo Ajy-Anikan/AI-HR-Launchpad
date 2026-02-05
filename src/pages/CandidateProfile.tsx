@@ -13,6 +13,7 @@ import { SkillSummaryCard } from "@/components/hr/SkillSummaryCard";
 import { ProgressGrowthCard, TrendType } from "@/components/hr/ProgressGrowthCard";
 import { PracticeActivityCard } from "@/components/hr/PracticeActivityCard";
 import { HRNotesCard } from "@/components/hr/HRNotesCard";
+import { FitScoreCard } from "@/components/hr/FitScoreCard";
 
 interface CandidateProfileData {
   anonymizedId: string;
@@ -272,6 +273,17 @@ export default function CandidateProfile() {
       </Alert>
 
       <div className="grid md:grid-cols-2 gap-6">
+        {/* Fit Score - Full Width for HR */}
+        <FitScoreCard
+          technicalSkills={profile.technicalSkills}
+          experienceYears={profile.experienceYears}
+          readinessScore={profile.readinessScore}
+          technicalTrend={profile.technicalTrend}
+          communicationTrend={profile.communicationTrend}
+          mockInterviewCount={profile.mockInterviewCount}
+          companyPracticeCount={profile.companyPracticeCount}
+        />
+
         {/* Candidate Overview */}
         <CandidateOverviewCard
           anonymizedId={profile.anonymizedId}
