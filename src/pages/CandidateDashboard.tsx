@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { UpcomingInterviews } from "@/components/candidate/UpcomingInterviews";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -431,6 +432,9 @@ export default function CandidateDashboard() {
 
         {/* Right Column - Sidebar */}
         <div className="space-y-6">
+          {/* Upcoming Interviews */}
+          {user && <UpcomingInterviews userId={user.id} />}
+
           {/* Self-Readiness Score Card */}
           <Card>
             <CardHeader className="pb-4">

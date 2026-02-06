@@ -156,6 +156,48 @@ export type Database = {
         }
         Relationships: []
       }
+      interview_schedules: {
+        Row: {
+          candidate_id: string
+          created_at: string
+          hr_notes: string | null
+          hr_user_id: string
+          id: string
+          interview_mode: string
+          interview_type: string
+          scheduled_date: string
+          scheduled_time: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          candidate_id: string
+          created_at?: string
+          hr_notes?: string | null
+          hr_user_id: string
+          id?: string
+          interview_mode: string
+          interview_type: string
+          scheduled_date: string
+          scheduled_time: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          candidate_id?: string
+          created_at?: string
+          hr_notes?: string | null
+          hr_user_id?: string
+          id?: string
+          interview_mode?: string
+          interview_type?: string
+          scheduled_date?: string
+          scheduled_time?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       job_requirements: {
         Row: {
           created_at: string
