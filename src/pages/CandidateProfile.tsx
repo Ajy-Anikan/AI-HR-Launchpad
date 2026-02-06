@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Users, BookOpen, AlertCircle } from "lucide-react";
+import { ArrowLeft, Users, BookOpen, AlertCircle, CalendarIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -14,6 +14,7 @@ import { ProgressGrowthCard, TrendType } from "@/components/hr/ProgressGrowthCar
 import { PracticeActivityCard } from "@/components/hr/PracticeActivityCard";
 import { HRNotesCard } from "@/components/hr/HRNotesCard";
 import { FitScoreCard } from "@/components/hr/FitScoreCard";
+import { ScheduleInterviewDialog } from "@/components/hr/ScheduleInterviewDialog";
 
 interface CandidateProfileData {
   anonymizedId: string;
@@ -258,9 +259,23 @@ export default function CandidateProfile() {
       </Button>
 
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">Candidate Profile</h1>
-        <p className="text-muted-foreground font-mono text-lg">{profile.anonymizedId}</p>
+      <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold mb-2">Candidate Profile</h1>
+          <p className="text-muted-foreground font-mono text-lg">{profile.anonymizedId}</p>
+        </div>
+        {user && (
+          <ScheduleInterviewDialog
+            candidateId={candidateId!}
+            hrUserId={user.id}
+            anonymizedId={profile.anonymizedId}
+          >
+            <Button>
+              <CalendarIcon className="h-4 w-4 mr-2" />
+              Schedule Interview
+            </Button>
+          </ScheduleInterviewDialog>
+        )}
       </div>
 
       {/* Disclaimer */}

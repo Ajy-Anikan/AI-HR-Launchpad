@@ -9,6 +9,7 @@ import {
   Eye,
   AlertCircle,
   Calendar,
+  CalendarIcon,
   ChevronDown
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -238,11 +239,17 @@ export default function HRDashboard() {
   return (
     <div className="container py-8">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">HR Dashboard</h1>
-        <p className="text-muted-foreground">
-          View candidate information for observation and shortlisting support.
-        </p>
+      <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold mb-2">HR Dashboard</h1>
+          <p className="text-muted-foreground">
+            View candidate information for observation and shortlisting support.
+          </p>
+        </div>
+        <Button onClick={() => navigate("/hr-interviews")}>
+          <CalendarIcon className="h-4 w-4 mr-2" />
+          Interview Schedule
+        </Button>
       </div>
 
       {/* Disclaimer Alert */}

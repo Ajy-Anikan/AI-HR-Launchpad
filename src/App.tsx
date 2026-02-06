@@ -17,6 +17,7 @@ import ResumeAnalyzer from "./pages/ResumeAnalyzer";
 import SkillTracker from "./pages/SkillTracker";
 import CompanyPrepHub from "./pages/CompanyPrepHub";
 import Profile from "./pages/Profile";
+import HRInterviews from "./pages/HRInterviews";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -36,6 +37,7 @@ const App = () => (
               <Route path="/candidate-dashboard" element={<CandidateDashboard />} />
               <Route path="/hr-dashboard" element={<HRDashboard />} />
               <Route path="/candidate-profile/:candidateId" element={<CandidateProfile />} />
+              <Route path="/hr-interviews" element={<HRInterviews />} />
               <Route path="/mock-interview" element={<MockInterview />} />
               <Route path="/interview-evaluation" element={<InterviewEvaluation />} />
               <Route path="/resume-analyzer" element={<ResumeAnalyzer />} />
