@@ -10,6 +10,7 @@ import {
   CheckCircle2,
   XCircle,
   Clock,
+  MessageSquare,
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -44,6 +45,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { InterviewFeedbackDialog } from "@/components/hr/InterviewFeedbackDialog";
 
 interface InterviewRow {
   id: string;
@@ -96,6 +98,8 @@ export default function HRInterviews() {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [sortOrder, setSortOrder] = useState<string>("upcoming");
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [feedbackInterview, setFeedbackInterview] = useState<InterviewRow | null>(null);
 
   useEffect(() => {
     if (!authLoading && user && role === "hr") {
@@ -340,6 +344,21 @@ export default function HRInterviews() {
                           </AlertDialog>
                         </div>
                       )}
+                      {interview.status === "completed" && (
+                        <div className="mt-4">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full"
+                            onClick={() => {
+                              setFeedbackInterview(interview);
+                              setFeedbackOpen(true);
+                            }}
+                          >
+                            <MessageSquare className="h-4 w-4 mr-1" /> Feedback
+                          </Button>
+                        </div>
+                      )}
                     </Card>
                   );
                 })}
@@ -420,6 +439,18 @@ export default function HRInterviews() {
                                 </AlertDialog>
                               </div>
                             )}
+                            {interview.status === "completed" && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  setFeedbackInterview(interview);
+                                  setFeedbackOpen(true);
+                                }}
+                              >
+                                <MessageSquare className="h-4 w-4 mr-1" /> Feedback
+                              </Button>
+                            )}
                           </TableCell>
                         </TableRow>
                       );
@@ -431,6 +462,19 @@ export default function HRInterviews() {
           )}
         </CardContent>
       </Card>
+
+      {/* Feedback Dialog */}
+      {feedbackInterview && user && (
+        <InterviewFeedbackDialog
+          open={feedbackOpen}
+          onOpenChange={setFeedbackOpen}
+          interviewId={feedbackInterview.id}
+          candidateId={feedbackInterview.candidate_id}
+          hrUserId={user.id}
+          interviewType={feedbackInterview.interview_type}
+          onFeedbackSaved={fetchInterviews}
+        />
+      )}
     </div>
   );
 }
