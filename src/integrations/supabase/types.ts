@@ -156,6 +156,62 @@ export type Database = {
         }
         Relationships: []
       }
+      interview_feedback: {
+        Row: {
+          candidate_id: string
+          communication_assessment: string
+          created_at: string
+          cultural_fit_assessment: string
+          hr_user_id: string
+          id: string
+          interview_id: string
+          key_concerns: string | null
+          key_strengths: string | null
+          overall_impression: string
+          recommendation: string
+          technical_assessment: string
+          updated_at: string
+        }
+        Insert: {
+          candidate_id: string
+          communication_assessment: string
+          created_at?: string
+          cultural_fit_assessment: string
+          hr_user_id: string
+          id?: string
+          interview_id: string
+          key_concerns?: string | null
+          key_strengths?: string | null
+          overall_impression: string
+          recommendation: string
+          technical_assessment: string
+          updated_at?: string
+        }
+        Update: {
+          candidate_id?: string
+          communication_assessment?: string
+          created_at?: string
+          cultural_fit_assessment?: string
+          hr_user_id?: string
+          id?: string
+          interview_id?: string
+          key_concerns?: string | null
+          key_strengths?: string | null
+          overall_impression?: string
+          recommendation?: string
+          technical_assessment?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interview_feedback_interview_id_fkey"
+            columns: ["interview_id"]
+            isOneToOne: true
+            referencedRelation: "interview_schedules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       interview_schedules: {
         Row: {
           candidate_id: string

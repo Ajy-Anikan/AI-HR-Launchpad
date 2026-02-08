@@ -126,17 +126,24 @@ export function UpcomingInterviews({ userId }: UpcomingInterviewsProps) {
             {past.map((interview) => (
               <div
                 key={interview.id}
-                className="flex items-center justify-between p-2 rounded-md opacity-60"
+                className="flex flex-col gap-1 p-2 rounded-md opacity-80 mb-2"
               >
-                <div className="flex items-center gap-2 text-sm">
-                  <span>{typeLabels[interview.interview_type]}</span>
-                  <span className="text-muted-foreground">
-                    {format(new Date(interview.scheduled_date + "T00:00:00"), "PP")}
-                  </span>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-sm">
+                    <span>{typeLabels[interview.interview_type]}</span>
+                    <span className="text-muted-foreground">
+                      {format(new Date(interview.scheduled_date + "T00:00:00"), "PP")}
+                    </span>
+                  </div>
+                  <Badge className={statusColors[interview.status]} variant="outline">
+                    {interview.status.charAt(0).toUpperCase() + interview.status.slice(1)}
+                  </Badge>
                 </div>
-                <Badge className={statusColors[interview.status]} variant="outline">
-                  {interview.status.charAt(0).toUpperCase() + interview.status.slice(1)}
-                </Badge>
+                {interview.status === "completed" && (
+                  <p className="text-xs text-muted-foreground italic">
+                    Interview completed. HR feedback under review.
+                  </p>
+                )}
               </div>
             ))}
           </div>
