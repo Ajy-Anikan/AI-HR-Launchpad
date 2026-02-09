@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.generate-company-question]
 verify_jwt = false
+
+[functions.evaluate-company-prep]
+verify_jwt = false

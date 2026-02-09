@@ -129,6 +129,82 @@ export type Database = {
         }
         Relationships: []
       }
+      company_prep_answer_evaluations: {
+        Row: {
+          answer_id: string
+          clarity_rating: string
+          depth_rating: string
+          evaluated_at: string
+          feedback_text: string
+          id: string
+          relevance_rating: string
+        }
+        Insert: {
+          answer_id: string
+          clarity_rating: string
+          depth_rating: string
+          evaluated_at?: string
+          feedback_text: string
+          id?: string
+          relevance_rating: string
+        }
+        Update: {
+          answer_id?: string
+          clarity_rating?: string
+          depth_rating?: string
+          evaluated_at?: string
+          feedback_text?: string
+          id?: string
+          relevance_rating?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_prep_answer_evaluations_answer_id_fkey"
+            columns: ["answer_id"]
+            isOneToOne: true
+            referencedRelation: "company_practice_answers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_prep_evaluations: {
+        Row: {
+          evaluated_at: string
+          gaps: string[] | null
+          id: string
+          improvement_tips: string[] | null
+          session_id: string
+          strengths: string[] | null
+          summary_message: string
+        }
+        Insert: {
+          evaluated_at?: string
+          gaps?: string[] | null
+          id?: string
+          improvement_tips?: string[] | null
+          session_id: string
+          strengths?: string[] | null
+          summary_message: string
+        }
+        Update: {
+          evaluated_at?: string
+          gaps?: string[] | null
+          id?: string
+          improvement_tips?: string[] | null
+          session_id?: string
+          strengths?: string[] | null
+          summary_message?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_prep_evaluations_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: true
+            referencedRelation: "company_practice_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hr_candidate_notes: {
         Row: {
           candidate_id: string
