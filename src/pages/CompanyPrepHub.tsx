@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Building2, Search, Star, Users, MapPin, ChevronRight, ArrowLeft, CheckCircle2, Sparkles, Loader2 } from "lucide-react";
+import CompanyPrepEvaluation from "@/components/candidate/CompanyPrepEvaluation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -543,8 +544,8 @@ export default function CompanyPrepHub() {
   // Completed Stage
   if (stage === "completed") {
     return (
-      <div className="container py-8 max-w-2xl">
-        <Card className="text-center">
+      <div className="container py-8 max-w-3xl">
+        <Card className="text-center mb-8">
           <CardHeader>
             <div className="h-20 w-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
               <CheckCircle2 className="h-10 w-10 text-green-600" />
@@ -577,10 +578,6 @@ export default function CompanyPrepHub() {
               </div>
             </div>
 
-            <p className="text-muted-foreground">
-              Keep practicing! The more you prepare, the more confident you'll feel in your real interview.
-            </p>
-
             <div className="flex flex-col sm:flex-row gap-3">
               <Button variant="outline" className="flex-1" onClick={handleReset}>
                 <ArrowLeft className="h-4 w-4 mr-2" />
@@ -598,6 +595,19 @@ export default function CompanyPrepHub() {
             </div>
           </CardContent>
         </Card>
+
+        {/* AI Evaluation Section */}
+        {sessionId && selectedCompany && (
+          <CompanyPrepEvaluation
+            sessionId={sessionId}
+            company={selectedCompany.name}
+            questionType={questionType}
+            difficulty={difficulty}
+            practiceYear={year}
+            questions={questions}
+            answers={answers}
+          />
+        )}
       </div>
     );
   }
