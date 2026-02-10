@@ -11,6 +11,7 @@ const navItems = [
   { name: "Resume Analyzer", path: "/resume-analyzer" },
   { name: "Skill Tracker", path: "/skill-tracker" },
   { name: "Company Prep Hub", path: "/company-prep" },
+  { name: "Analytics", path: "/analytics" },
   { name: "HR Dashboard", path: "/hr-dashboard" },
   { name: "Profile", path: "/profile" },
 ];
