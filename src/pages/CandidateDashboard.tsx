@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import { UpcomingInterviews } from "@/components/candidate/UpcomingInterviews";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { OnboardingModal } from "@/components/onboarding/OnboardingModal";
+import { PageTooltip } from "@/components/onboarding/PageTooltip";
+import { useOnboarding } from "@/hooks/useOnboarding";
 import { supabase } from "@/integrations/supabase/client";
 import {
   FileText,
@@ -54,6 +57,12 @@ export default function CandidateDashboard() {
   const [resume, setResume] = useState<ResumeData | null>(null);
   const [screeningResults, setScreeningResults] = useState<ScreeningResult[]>([]);
   const [loading, setLoading] = useState(true);
+  const { showOnboarding, completeOnboarding } = useOnboarding(user?.id);
+
+  const handleOnboardingComplete = () => {
+    completeOnboarding();
+    // Stay on dashboard
+  };
 
   // Role-based access control - only candidates allowed
   useEffect(() => {
@@ -245,6 +254,15 @@ export default function CandidateDashboard() {
 
   return (
     <div className="container py-8 max-w-6xl">
+      <OnboardingModal
+        open={showOnboarding}
+        onComplete={handleOnboardingComplete}
+        role="candidate"
+      />
+      <PageTooltip
+        tooltipKey="candidate_dashboard"
+        message="This is your readiness dashboard. Upload your resume, practice interviews, and track your progress — all in one place."
+      />
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Candidate Readiness Dashboard</h1>

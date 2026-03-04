@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
+import { PageTooltip } from "@/components/onboarding/PageTooltip";
 import { FileText, Upload, CheckCircle, AlertCircle, Loader2, X, FileUp } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -247,6 +248,10 @@ export default function ResumeAnalyzer() {
 
   return (
     <div className="container py-8">
+      <PageTooltip
+        tooltipKey="resume_analyzer"
+        message="Upload your resume here to extract skills, experience, and receive AI-powered insights aligned with job requirements."
+      />
       {/* Header */}
       <div className="text-center mb-12">
         <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-accent/10 text-accent mb-4">

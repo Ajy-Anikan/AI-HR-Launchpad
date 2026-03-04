@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { PageTooltip } from "@/components/onboarding/PageTooltip";
 import { useNavigate, Link } from "react-router-dom";
 import { 
   BrainCircuit, 
@@ -265,7 +266,11 @@ export default function MockInterview() {
   if (stage === "setup") {
     return (
       <div className="container py-8 max-w-2xl">
-        <Link 
+        <PageTooltip
+          tooltipKey="mock_interview"
+          message="Practice real interview questions here. Choose your interview type and difficulty, then answer AI-generated questions to get structured feedback."
+        />
+        <Link
           to="/candidate-dashboard" 
           className="inline-flex items-center text-sm text-muted-foreground hover:text-primary mb-6"
         >
