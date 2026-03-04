@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { OnboardingModal } from "@/components/onboarding/OnboardingModal";
+import { PageTooltip } from "@/components/onboarding/PageTooltip";
+import { useOnboarding } from "@/hooks/useOnboarding";
 import { 
   Users, 
   FileText,
@@ -69,6 +72,11 @@ export default function HRDashboard() {
   const [resumeFilter, setResumeFilter] = useState<string>("all");
   const [readinessFilter, setReadinessFilter] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState("");
+  const { showOnboarding, completeOnboarding } = useOnboarding(user?.id);
+
+  const handleOnboardingComplete = () => {
+    completeOnboarding();
+  };
 
   // Stats
   const [totalCandidates, setTotalCandidates] = useState(0);
@@ -238,6 +246,15 @@ export default function HRDashboard() {
 
   return (
     <div className="container py-8">
+      <OnboardingModal
+        open={showOnboarding}
+        onComplete={handleOnboardingComplete}
+        role="hr"
+      />
+      <PageTooltip
+        tooltipKey="hr_dashboard"
+        message="This is your HR dashboard. View candidate profiles, schedule interviews, and monitor aggregated hiring insights."
+      />
       {/* Header */}
       <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>

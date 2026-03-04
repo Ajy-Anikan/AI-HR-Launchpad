@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { PageTooltip } from "@/components/onboarding/PageTooltip";
 import { useNavigate, Link } from "react-router-dom";
 import { 
   Target, 
@@ -188,6 +189,10 @@ export default function SkillTracker() {
 
   return (
     <div className="container py-8 max-w-5xl">
+      <PageTooltip
+        tooltipKey="skill_tracker"
+        message="Track your technical and communication skill growth over time. View trends from mock interviews and practice sessions."
+      />
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
