@@ -25,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { SkillInsights } from "@/components/candidate/SkillInsights";
 
 interface ParsedData {
   technical_skills?: string[];
@@ -445,6 +446,14 @@ export default function CandidateDashboard() {
                 )}
               </CardContent>
             </Card>
+           )}
+
+          {/* Skill Insights Visualization */}
+          {resume && resume.skills && resume.skills.length > 0 && (
+            <SkillInsights
+              skills={resume.skills}
+              missingSkills={screeningResults.flatMap(r => r.missing_skills || [])}
+            />
           )}
         </div>
 
