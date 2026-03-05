@@ -446,6 +446,14 @@ export default function CandidateDashboard() {
                 )}
               </CardContent>
             </Card>
+           )}
+
+          {/* Skill Insights Visualization */}
+          {resume && resume.skills && resume.skills.length > 0 && (
+            <SkillInsights
+              skills={resume.skills}
+              missingSkills={screeningResults.flatMap(r => r.missing_skills || [])}
+            />
           )}
         </div>
 

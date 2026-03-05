@@ -401,6 +401,13 @@ export default function ResumeAnalyzer() {
           </Card>
         )}
 
+        {/* Skill Insights Visualization */}
+        {resumeData && resumeData.skills.length > 0 && (
+          <div className="mb-8">
+            <SkillInsights skills={resumeData.skills} />
+          </div>
+        )}
+
         {/* Features Preview */}
         {!resumeData && (
           <div className="grid md:grid-cols-2 gap-6">
