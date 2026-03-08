@@ -279,7 +279,7 @@ export function FitScoreCard(props: FitScoreCardProps) {
         {/* Score Breakdown */}
         <div className="space-y-4">
           <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
-            Score Breakdown
+            Fit Score Breakdown
           </h4>
           <div className="grid sm:grid-cols-2 gap-4">
             {components.map((component) => (
