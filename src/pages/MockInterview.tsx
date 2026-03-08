@@ -176,6 +176,7 @@ export default function MockInterview() {
     setInterviewType(null);
     setRoleLevel(null);
     setInterviewMode("practice");
+    setInputMode("text");
     setSessionId(null);
     setCurrentQuestion(1);
     setQuestionText("");
