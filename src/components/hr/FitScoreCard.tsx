@@ -175,6 +175,7 @@ const calculateFitScore = (inputs: FitScoreInputs): {
     weight: 15,
     score: consistencyScore,
     explanation: consistencyExplanation,
+    tooltipDescription: "Reflects the number of practice sessions completed.",
     icon: <CheckCircle2 className="h-4 w-4" />,
   });
 
