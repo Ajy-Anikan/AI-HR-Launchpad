@@ -54,6 +54,7 @@ export function InterviewSession({
           <span className="text-sm text-muted-foreground">
             {interviewTypeLabels[interviewType].label} Interview
             {interviewMode === "simulation" && " • Simulation"}
+            {inputMode === "voice" && " • 🎙️ Voice"}
           </span>
         </div>
         <Progress value={progress} className="h-2" />
