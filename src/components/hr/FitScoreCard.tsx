@@ -290,22 +290,24 @@ export function FitScoreCard(props: FitScoreCardProps) {
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <span className="text-muted-foreground">{component.icon}</span>
-                    <span className="font-medium text-sm">{component.name}</span>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="font-medium text-sm cursor-help border-b border-dashed border-muted-foreground/40">
+                          {component.name}
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="max-w-xs">
+                        <p className="text-sm">{component.tooltipDescription}</p>
+                      </TooltipContent>
+                    </Tooltip>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className={`font-semibold ${getScoreColor(component.score)}`}>
                       {component.score}
                     </span>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Badge variant="secondary" className="text-xs">
-                          {component.weight}%
-                        </Badge>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Weight in final score</p>
-                      </TooltipContent>
-                    </Tooltip>
+                    <Badge variant="secondary" className="text-xs">
+                      {component.weight}%
+                    </Badge>
                   </div>
                 </div>
                 <Progress
