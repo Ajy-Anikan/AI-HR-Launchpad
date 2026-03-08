@@ -205,6 +205,8 @@ export default function MockInterview() {
         setRoleLevel={setRoleLevel}
         interviewMode={interviewMode}
         setInterviewMode={setInterviewMode}
+        inputMode={inputMode}
+        setInputMode={setInputMode}
         candidateSkills={candidateSkills}
         isLoading={isLoading}
         onStart={startInterview}
