@@ -1,15 +1,17 @@
 import { useCallback } from "react";
-import { ArrowRight, CheckCircle2, Loader2, MessageSquare } from "lucide-react";
+import { ArrowRight, CheckCircle2, Loader2, MessageSquare, Mic } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { InterviewTimer } from "./InterviewTimer";
-import { interviewTypeLabels, type InterviewType, type InterviewMode, TIMER_SECONDS } from "./InterviewSetup";
+import VoiceRecorder from "./VoiceRecorder";
+import { interviewTypeLabels, type InterviewType, type InterviewMode, type InputMode, TIMER_SECONDS } from "./InterviewSetup";
 
 interface InterviewSessionProps {
   interviewType: InterviewType;
   interviewMode: InterviewMode;
+  inputMode: InputMode;
   currentQuestion: number;
   totalQuestions: number;
   questionText: string;
@@ -24,6 +26,7 @@ interface InterviewSessionProps {
 export function InterviewSession({
   interviewType,
   interviewMode,
+  inputMode,
   currentQuestion,
   totalQuestions,
   questionText,
