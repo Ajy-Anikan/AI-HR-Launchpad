@@ -30,6 +30,7 @@ interface ScoreComponent {
   weight: number;
   score: number;
   explanation: string;
+  tooltipDescription: string;
   icon: React.ReactNode;
 }
 
