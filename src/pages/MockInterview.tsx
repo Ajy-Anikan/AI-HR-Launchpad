@@ -23,6 +23,7 @@ export default function MockInterview() {
   const [interviewType, setInterviewType] = useState<InterviewType | null>(null);
   const [roleLevel, setRoleLevel] = useState<RoleLevel | null>(null);
   const [interviewMode, setInterviewMode] = useState<InterviewMode>("practice");
+  const [inputMode, setInputMode] = useState<InputMode>("text");
   const [stage, setStage] = useState<InterviewStage>("setup");
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState(1);
