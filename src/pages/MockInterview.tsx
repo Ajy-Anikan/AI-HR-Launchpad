@@ -219,6 +219,7 @@ export default function MockInterview() {
       <InterviewSession
         interviewType={interviewType!}
         interviewMode={interviewMode}
+        inputMode={inputMode}
         currentQuestion={currentQuestion}
         totalQuestions={totalQuestions}
         questionText={questionText}
