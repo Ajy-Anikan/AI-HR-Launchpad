@@ -20,6 +20,7 @@ import Profile from "./pages/Profile";
 import HRInterviews from "./pages/HRInterviews";
 import Analytics from "./pages/Analytics";
 import NotFound from "./pages/NotFound";
+import HRPipeline from "./pages/HRPipeline";
 
 const queryClient = new QueryClient();
 
