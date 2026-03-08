@@ -11,12 +11,16 @@ import {
   Users,
   Calendar,
   ClipboardList,
-  Target
+  Target,
+  Eye
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { useDemo } from "@/contexts/DemoContext";
 
 export default function Index() {
+  const { startDemo } = useDemo();
+
   return (
     <div className="flex flex-col overflow-hidden">
       {/* Hero Section */}
@@ -61,6 +65,15 @@ export default function Index() {
               <Button 
                 size="lg" 
                 variant="outline" 
+                className="text-base px-8 hover:bg-primary/5 transition-colors"
+                onClick={startDemo}
+              >
+                <Eye className="mr-2 h-4 w-4" />
+                Try Demo Mode
+              </Button>
+              <Button 
+                size="lg" 
+                variant="ghost" 
                 asChild 
                 className="text-base px-8 hover:bg-primary/5 transition-colors"
               >

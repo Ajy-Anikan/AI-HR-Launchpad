@@ -5,6 +5,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { AuthProvider } from "@/hooks/useAuth";
+import { DemoProvider } from "@/contexts/DemoContext";
+import { DemoTourOverlay } from "@/components/demo/DemoTourOverlay";
+import { DemoBanner } from "@/components/demo/DemoBanner";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -31,8 +34,11 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <Layout>
-            <Routes>
+          <DemoProvider>
+            <Layout>
+              <DemoBanner />
+              <DemoTourOverlay />
+              <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
@@ -49,8 +55,9 @@ const App = () => (
               <Route path="/analytics" element={<Analytics />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Layout>
+              </Routes>
+            </Layout>
+          </DemoProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
