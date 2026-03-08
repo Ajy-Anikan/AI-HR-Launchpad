@@ -324,13 +324,13 @@ export function FitScoreCard(props: FitScoreCardProps) {
 
         {/* Signals Grid */}
         <div className="grid sm:grid-cols-2 gap-4">
-          {/* Strength Signals */}
+          {/* Positive Signals */}
           {strengths.length > 0 && (
             <div className="p-4 rounded-lg border border-emerald-200 bg-emerald-50/50 dark:border-emerald-900 dark:bg-emerald-950/20">
               <div className="flex items-center gap-2 mb-3">
                 <TrendingUp className="h-4 w-4 text-emerald-600" />
                 <h4 className="font-medium text-sm text-emerald-700 dark:text-emerald-400">
-                  Strength Signals
+                  Positive Signals
                 </h4>
               </div>
               <ul className="space-y-2">
