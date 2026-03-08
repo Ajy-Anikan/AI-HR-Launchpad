@@ -26,6 +26,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SkillInsights } from "@/components/candidate/SkillInsights";
+import CareerPathSuggestions from "@/components/candidate/CareerPathSuggestions";
 
 interface ParsedData {
   technical_skills?: string[];
