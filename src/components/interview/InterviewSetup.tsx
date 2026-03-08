@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowLeft, BrainCircuit, Play, Loader2, Zap, BookOpen } from "lucide-react";
+import { ArrowLeft, BrainCircuit, Play, Loader2, Zap, BookOpen, Keyboard, Mic } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -8,6 +8,7 @@ import { PageTooltip } from "@/components/onboarding/PageTooltip";
 export type InterviewType = "technical" | "behavioral" | "hr";
 export type RoleLevel = "fresher" | "junior" | "mid";
 export type InterviewMode = "practice" | "simulation";
+export type InputMode = "text" | "voice";
 
 export const interviewTypeLabels: Record<InterviewType, { label: string; icon: string; description: string }> = {
   technical: { label: "Technical", icon: "💻", description: "Coding, system design, and technical problem-solving" },
