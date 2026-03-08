@@ -18,6 +18,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useDemo } from "@/contexts/DemoContext";
 
 export default function Index() {
+  const { startDemo } = useDemo();
+
   return (
     <div className="flex flex-col overflow-hidden">
       {/* Hero Section */}
