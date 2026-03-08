@@ -26,6 +26,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SkillInsights } from "@/components/candidate/SkillInsights";
+import CareerPathSuggestions from "@/components/candidate/CareerPathSuggestions";
 
 interface ParsedData {
   technical_skills?: string[];
@@ -455,6 +456,15 @@ export default function CandidateDashboard() {
               missingSkills={screeningResults.flatMap(r => r.missing_skills || [])}
             />
           )}
+
+          {/* AI Career Path Suggestions */}
+          <CareerPathSuggestions
+            skills={resume?.skills || []}
+            experienceYears={resume?.experience_years ?? null}
+            missingSkills={screeningResults.flatMap(r => r.missing_skills || [])}
+            strengths={[]}
+            gaps={skillGaps}
+          />
         </div>
 
         {/* Right Column - Sidebar */}
