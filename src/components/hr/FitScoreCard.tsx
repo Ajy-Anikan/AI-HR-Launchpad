@@ -30,6 +30,7 @@ interface ScoreComponent {
   weight: number;
   score: number;
   explanation: string;
+  tooltipDescription: string;
   icon: React.ReactNode;
 }
 
@@ -78,6 +79,7 @@ const calculateFitScore = (inputs: FitScoreInputs): {
     weight: 40,
     score: technicalScore,
     explanation: technicalExplanation,
+    tooltipDescription: "Measures how closely the candidate's extracted skills match job requirements.",
     icon: <Sparkles className="h-4 w-4" />,
   });
 
@@ -104,6 +106,7 @@ const calculateFitScore = (inputs: FitScoreInputs): {
     weight: 25,
     score: communicationScore,
     explanation: communicationExplanation,
+    tooltipDescription: "Based on qualitative evaluation from mock interview responses.",
     icon: <TrendingUp className="h-4 w-4" />,
   });
 
@@ -138,6 +141,7 @@ const calculateFitScore = (inputs: FitScoreInputs): {
     weight: 20,
     score: growthScore,
     explanation: growthExplanation,
+    tooltipDescription: "Indicates improvement in candidate skill tracker over time.",
     icon: <TrendingUp className="h-4 w-4" />,
   });
 
@@ -171,6 +175,7 @@ const calculateFitScore = (inputs: FitScoreInputs): {
     weight: 15,
     score: consistencyScore,
     explanation: consistencyExplanation,
+    tooltipDescription: "Reflects the number of practice sessions completed.",
     icon: <CheckCircle2 className="h-4 w-4" />,
   });
 
@@ -274,7 +279,7 @@ export function FitScoreCard(props: FitScoreCardProps) {
         {/* Score Breakdown */}
         <div className="space-y-4">
           <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
-            Score Breakdown
+            Fit Score Breakdown
           </h4>
           <div className="grid sm:grid-cols-2 gap-4">
             {components.map((component) => (
@@ -285,22 +290,24 @@ export function FitScoreCard(props: FitScoreCardProps) {
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <span className="text-muted-foreground">{component.icon}</span>
-                    <span className="font-medium text-sm">{component.name}</span>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="font-medium text-sm cursor-help border-b border-dashed border-muted-foreground/40">
+                          {component.name}
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="max-w-xs">
+                        <p className="text-sm">{component.tooltipDescription}</p>
+                      </TooltipContent>
+                    </Tooltip>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className={`font-semibold ${getScoreColor(component.score)}`}>
                       {component.score}
                     </span>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Badge variant="secondary" className="text-xs">
-                          {component.weight}%
-                        </Badge>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Weight in final score</p>
-                      </TooltipContent>
-                    </Tooltip>
+                    <Badge variant="secondary" className="text-xs">
+                      {component.weight}%
+                    </Badge>
                   </div>
                 </div>
                 <Progress
@@ -317,13 +324,13 @@ export function FitScoreCard(props: FitScoreCardProps) {
 
         {/* Signals Grid */}
         <div className="grid sm:grid-cols-2 gap-4">
-          {/* Strength Signals */}
+          {/* Positive Signals */}
           {strengths.length > 0 && (
             <div className="p-4 rounded-lg border border-emerald-200 bg-emerald-50/50 dark:border-emerald-900 dark:bg-emerald-950/20">
               <div className="flex items-center gap-2 mb-3">
                 <TrendingUp className="h-4 w-4 text-emerald-600" />
                 <h4 className="font-medium text-sm text-emerald-700 dark:text-emerald-400">
-                  Strength Signals
+                  Positive Signals
                 </h4>
               </div>
               <ul className="space-y-2">
