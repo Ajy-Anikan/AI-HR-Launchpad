@@ -63,6 +63,33 @@ export default function ResumeAnalyzer() {
             summary: data.summary || "",
           });
         }
+
+        // Fetch screening results for missing skills
+        const { data: screeningData } = await supabase
+          .from("screening_results")
+          .select("missing_skills")
+          .eq("resume_id", data.id);
+        if (screeningData) {
+          const allMissing = screeningData.flatMap((r: any) => r.missing_skills || []);
+          setMissingSkills([...new Set(allMissing)]);
+        }
+
+        // Fetch evaluation gaps
+        const { data: sessions } = await supabase
+          .from("mock_interview_sessions")
+          .select("id")
+          .eq("user_id", user!.id);
+        if (sessions && sessions.length > 0) {
+          const sessionIds = sessions.map((s: any) => s.id);
+          const { data: evals } = await supabase
+            .from("session_evaluations")
+            .select("gaps")
+            .in("session_id", sessionIds);
+          if (evals) {
+            const allGaps = evals.flatMap((e: any) => e.gaps || []);
+            setEvaluationGaps([...new Set(allGaps)]);
+          }
+        }
       }
     } catch (error) {
       console.error("Error fetching existing resume:", error);
