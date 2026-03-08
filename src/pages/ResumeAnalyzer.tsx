@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { SkillInsights } from "@/components/candidate/SkillInsights";
+import ResumeImprovements from "@/components/candidate/ResumeImprovements";
 
 interface ResumeData {
   skills: string[];
@@ -37,6 +38,8 @@ export default function ResumeAnalyzer() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [resumeData, setResumeData] = useState<ResumeData | null>(null);
   const [existingResume, setExistingResume] = useState<Resume | null>(null);
+  const [missingSkills, setMissingSkills] = useState<string[]>([]);
+  const [evaluationGaps, setEvaluationGaps] = useState<string[]>([]);
 
   const fetchExistingResume = useCallback(async () => {
     if (!user) return;
@@ -59,6 +62,33 @@ export default function ResumeAnalyzer() {
             education: data.education || "",
             summary: data.summary || "",
           });
+        }
+
+        // Fetch screening results for missing skills
+        const { data: screeningData } = await supabase
+          .from("screening_results")
+          .select("missing_skills")
+          .eq("resume_id", data.id);
+        if (screeningData) {
+          const allMissing = screeningData.flatMap((r: any) => r.missing_skills || []);
+          setMissingSkills([...new Set(allMissing)]);
+        }
+
+        // Fetch evaluation gaps
+        const { data: sessions } = await supabase
+          .from("mock_interview_sessions")
+          .select("id")
+          .eq("user_id", user!.id);
+        if (sessions && sessions.length > 0) {
+          const sessionIds = sessions.map((s: any) => s.id);
+          const { data: evals } = await supabase
+            .from("session_evaluations")
+            .select("gaps")
+            .in("session_id", sessionIds);
+          if (evals) {
+            const allGaps = evals.flatMap((e: any) => e.gaps || []);
+            setEvaluationGaps([...new Set(allGaps)]);
+          }
         }
       }
     } catch (error) {
@@ -404,7 +434,21 @@ export default function ResumeAnalyzer() {
         {/* Skill Insights Visualization */}
         {resumeData && resumeData.skills.length > 0 && (
           <div className="mb-8">
-            <SkillInsights skills={resumeData.skills} />
+            <SkillInsights skills={resumeData.skills} missingSkills={missingSkills} />
+          </div>
+        )}
+
+        {/* Resume Improvement Suggestions */}
+        {resumeData && resumeData.skills.length > 0 && (
+          <div className="mb-8">
+            <ResumeImprovements
+              skills={resumeData.skills}
+              experienceYears={resumeData.experience_years}
+              education={resumeData.education}
+              summary={resumeData.summary}
+              missingSkills={missingSkills}
+              evaluationGaps={evaluationGaps}
+            />
           </div>
         )}
 
