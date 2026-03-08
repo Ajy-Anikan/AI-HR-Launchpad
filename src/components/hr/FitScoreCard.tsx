@@ -106,6 +106,7 @@ const calculateFitScore = (inputs: FitScoreInputs): {
     weight: 25,
     score: communicationScore,
     explanation: communicationExplanation,
+    tooltipDescription: "Based on qualitative evaluation from mock interview responses.",
     icon: <TrendingUp className="h-4 w-4" />,
   });
 
