@@ -38,6 +38,8 @@ export default function ResumeAnalyzer() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [resumeData, setResumeData] = useState<ResumeData | null>(null);
   const [existingResume, setExistingResume] = useState<Resume | null>(null);
+  const [missingSkills, setMissingSkills] = useState<string[]>([]);
+  const [evaluationGaps, setEvaluationGaps] = useState<string[]>([]);
 
   const fetchExistingResume = useCallback(async () => {
     if (!user) return;
