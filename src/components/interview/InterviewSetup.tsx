@@ -35,6 +35,8 @@ interface InterviewSetupProps {
   setRoleLevel: (level: RoleLevel) => void;
   interviewMode: InterviewMode;
   setInterviewMode: (mode: InterviewMode) => void;
+  inputMode: InputMode;
+  setInputMode: (mode: InputMode) => void;
   candidateSkills: string[];
   isLoading: boolean;
   onStart: () => void;
@@ -47,6 +49,8 @@ export function InterviewSetup({
   setRoleLevel,
   interviewMode,
   setInterviewMode,
+  inputMode,
+  setInputMode,
   candidateSkills,
   isLoading,
   onStart,
