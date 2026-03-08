@@ -57,6 +57,7 @@ export default function CandidateAnalytics() {
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [latestScore, setLatestScore] = useState<number | null>(null);
   const [scoreTrend, setScoreTrend] = useState<"up" | "down" | "stable">("stable");
+  const [hasResume, setHasResume] = useState(false);
 
   useEffect(() => {
     if (user) fetchAnalytics();
