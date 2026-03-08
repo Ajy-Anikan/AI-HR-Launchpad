@@ -112,7 +112,32 @@ export function InterviewSetup({
             </div>
           </div>
 
-          {/* Interview Type Selection */}
+          {/* Input Mode Selection */}
+          <div className="space-y-3">
+            <label className="text-sm font-medium">Answer Input Mode</label>
+            <div className="grid sm:grid-cols-2 gap-3">
+              <button
+                onClick={() => setInputMode("text")}
+                className={`p-4 rounded-lg border-2 text-left transition-all ${
+                  inputMode === "text" ? "border-primary bg-primary/5" : "border-muted hover:border-primary/50"
+                }`}
+              >
+                <Keyboard className="h-6 w-6 mb-2 text-primary" />
+                <span className="font-medium block">Text Mode</span>
+                <span className="text-xs text-muted-foreground">Type your answers using the keyboard.</span>
+              </button>
+              <button
+                onClick={() => setInputMode("voice")}
+                className={`p-4 rounded-lg border-2 text-left transition-all ${
+                  inputMode === "voice" ? "border-primary bg-primary/5" : "border-muted hover:border-primary/50"
+                }`}
+              >
+                <Mic className="h-6 w-6 mb-2 text-primary" />
+                <span className="font-medium block">Voice Mode</span>
+                <span className="text-xs text-muted-foreground">Answer verbally, simulating a real interview.</span>
+              </button>
+            </div>
+          </div>
           <div className="space-y-3">
             <label className="text-sm font-medium">Interview Type</label>
             <div className="grid sm:grid-cols-3 gap-3">
