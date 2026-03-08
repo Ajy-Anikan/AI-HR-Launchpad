@@ -144,9 +144,13 @@ export default function CandidateAnalytics() {
       setStrengths(getTopItems(allStrengths, 3));
       setFocusAreas(getTopItems(allGaps, 3));
 
+      // Track resume presence
+      const resumes = resumeRes.data || [];
+      setHasResume(resumes.length > 0);
+
       // Activity timeline
       const activityList: ActivityItem[] = [];
-      (resumeRes.data || []).forEach((r) => {
+      resumes.forEach((r) => {
         activityList.push({
           date: r.uploaded_at,
           type: "resume",
