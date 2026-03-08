@@ -13,6 +13,7 @@ const navItems = [
   { name: "Company Prep Hub", path: "/company-prep" },
   { name: "Analytics", path: "/analytics" },
   { name: "HR Dashboard", path: "/hr-dashboard" },
+  { name: "Pipeline", path: "/hr-pipeline" },
   { name: "Profile", path: "/profile" },
 ];
 
