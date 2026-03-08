@@ -13,6 +13,7 @@ import {
   Award,
   AlertCircle,
 } from "lucide-react";
+import GrowthTimeline, { type TimelineEvent } from "./GrowthTimeline";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -56,6 +57,7 @@ export default function CandidateAnalytics() {
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [latestScore, setLatestScore] = useState<number | null>(null);
   const [scoreTrend, setScoreTrend] = useState<"up" | "down" | "stable">("stable");
+  const [hasResume, setHasResume] = useState(false);
 
   useEffect(() => {
     if (user) fetchAnalytics();
@@ -142,9 +144,13 @@ export default function CandidateAnalytics() {
       setStrengths(getTopItems(allStrengths, 3));
       setFocusAreas(getTopItems(allGaps, 3));
 
+      // Track resume presence
+      const resumes = resumeRes.data || [];
+      setHasResume(resumes.length > 0);
+
       // Activity timeline
       const activityList: ActivityItem[] = [];
-      (resumeRes.data || []).forEach((r) => {
+      resumes.forEach((r) => {
         activityList.push({
           date: r.uploaded_at,
           type: "resume",
@@ -383,42 +389,14 @@ export default function CandidateAnalytics() {
         </Card>
       </div>
 
-      {/* Activity Timeline */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-primary" />
-            Activity Timeline
-          </CardTitle>
-          <CardDescription>Your recent preparation activities</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {activities.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-6">
-              No activity yet. Start a mock interview or upload your resume to begin!
-            </p>
-          ) : (
-            <div className="relative">
-              <div className="absolute left-[17px] top-2 bottom-2 w-px bg-border" />
-              <ul className="space-y-4">
-                {activities.map((a, i) => (
-                  <li key={i} className="flex items-start gap-4 relative">
-                    <div className="h-9 w-9 rounded-full bg-muted flex items-center justify-center shrink-0 z-10">
-                      {activityIcon(a.type)}
-                    </div>
-                    <div className="pt-1">
-                      <p className="text-sm font-medium">{a.label}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {format(new Date(a.date), "MMM d, yyyy 'at' h:mm a")}
-                      </p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      {/* Growth Timeline */}
+      <GrowthTimeline
+        activities={activities as TimelineEvent[]}
+        skillTrends={skillTrends}
+        mockCount={mockCount}
+        companyPrepCount={companyPrepCount}
+        hasResume={hasResume}
+      />
     </div>
   );
 }
