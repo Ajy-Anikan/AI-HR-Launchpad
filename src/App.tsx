@@ -20,6 +20,7 @@ import Profile from "./pages/Profile";
 import HRInterviews from "./pages/HRInterviews";
 import Analytics from "./pages/Analytics";
 import NotFound from "./pages/NotFound";
+import HRPipeline from "./pages/HRPipeline";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +40,7 @@ const App = () => (
               <Route path="/hr-dashboard" element={<HRDashboard />} />
               <Route path="/candidate-profile/:candidateId" element={<CandidateProfile />} />
               <Route path="/hr-interviews" element={<HRInterviews />} />
+              <Route path="/hr-pipeline" element={<HRPipeline />} />
               <Route path="/mock-interview" element={<MockInterview />} />
               <Route path="/interview-evaluation" element={<InterviewEvaluation />} />
               <Route path="/resume-analyzer" element={<ResumeAnalyzer />} />

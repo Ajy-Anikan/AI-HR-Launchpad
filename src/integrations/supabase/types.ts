@@ -434,6 +434,33 @@ export type Database = {
         }
         Relationships: []
       }
+      pipeline_candidates: {
+        Row: {
+          candidate_id: string
+          created_at: string
+          hr_user_id: string
+          id: string
+          moved_at: string
+          stage: string
+        }
+        Insert: {
+          candidate_id: string
+          created_at?: string
+          hr_user_id: string
+          id?: string
+          moved_at?: string
+          stage?: string
+        }
+        Update: {
+          candidate_id?: string
+          created_at?: string
+          hr_user_id?: string
+          id?: string
+          moved_at?: string
+          stage?: string
+        }
+        Relationships: []
+      }
       resumes: {
         Row: {
           content_type: string
