@@ -79,6 +79,7 @@ const calculateFitScore = (inputs: FitScoreInputs): {
     weight: 40,
     score: technicalScore,
     explanation: technicalExplanation,
+    tooltipDescription: "Measures how closely the candidate's extracted skills match job requirements.",
     icon: <Sparkles className="h-4 w-4" />,
   });
 
