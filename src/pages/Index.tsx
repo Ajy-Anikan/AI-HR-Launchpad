@@ -11,6 +11,15 @@ import {
   Users,
   Calendar,
   ClipboardList,
+  Target,
+  Eye
+  BarChart3,
+  Building2,
+  MessageSquare,
+  TrendingUp,
+  Users,
+  Calendar,
+  ClipboardList,
   Target
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
