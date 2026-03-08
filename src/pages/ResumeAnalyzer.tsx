@@ -434,7 +434,21 @@ export default function ResumeAnalyzer() {
         {/* Skill Insights Visualization */}
         {resumeData && resumeData.skills.length > 0 && (
           <div className="mb-8">
-            <SkillInsights skills={resumeData.skills} />
+            <SkillInsights skills={resumeData.skills} missingSkills={missingSkills} />
+          </div>
+        )}
+
+        {/* Resume Improvement Suggestions */}
+        {resumeData && resumeData.skills.length > 0 && (
+          <div className="mb-8">
+            <ResumeImprovements
+              skills={resumeData.skills}
+              experienceYears={resumeData.experience_years}
+              education={resumeData.education}
+              summary={resumeData.summary}
+              missingSkills={missingSkills}
+              evaluationGaps={evaluationGaps}
+            />
           </div>
         )}
 
