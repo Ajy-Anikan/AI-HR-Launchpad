@@ -141,6 +141,7 @@ const calculateFitScore = (inputs: FitScoreInputs): {
     weight: 20,
     score: growthScore,
     explanation: growthExplanation,
+    tooltipDescription: "Indicates improvement in candidate skill tracker over time.",
     icon: <TrendingUp className="h-4 w-4" />,
   });
 
