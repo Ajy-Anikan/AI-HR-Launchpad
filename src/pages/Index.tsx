@@ -64,6 +64,15 @@ export default function Index() {
               <Button 
                 size="lg" 
                 variant="outline" 
+                className="text-base px-8 hover:bg-primary/5 transition-colors"
+                onClick={startDemo}
+              >
+                <Eye className="mr-2 h-4 w-4" />
+                Try Demo Mode
+              </Button>
+              <Button 
+                size="lg" 
+                variant="ghost" 
                 asChild 
                 className="text-base px-8 hover:bg-primary/5 transition-colors"
               >
