@@ -95,9 +95,14 @@ export function InterviewSession({
       {/* Answer Area */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Your Answer</CardTitle>
+          <CardTitle className="text-base flex items-center gap-2">
+            {inputMode === "voice" && <Mic className="h-4 w-4 text-primary" />}
+            Your Answer
+          </CardTitle>
           <CardDescription>
-            {interviewMode === "simulation"
+            {inputMode === "voice"
+              ? "Speak your answer clearly. Your voice will be transcribed in real-time."
+              : interviewMode === "simulation"
               ? "Answer within the time limit. The interview will auto-advance when time expires."
               : "Take your time. There's no rush—this is practice."}
           </CardDescription>
