@@ -108,13 +108,28 @@ export function InterviewSession({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Textarea
-            value={answerText}
-            onChange={(e) => setAnswerText(e.target.value)}
-            placeholder="Type your answer here..."
-            className="min-h-[150px] resize-none"
-            disabled={isLoading || isSubmitting}
-          />
+          {inputMode === "voice" ? (
+            <>
+              <VoiceRecorder
+                onTranscript={setAnswerText}
+                disabled={isLoading || isSubmitting}
+              />
+              {answerText && (
+                <div className="p-3 rounded-lg bg-muted/50 border max-h-40 overflow-y-auto">
+                  <p className="text-xs font-medium text-muted-foreground mb-1">Transcribed Answer</p>
+                  <p className="text-sm">{answerText}</p>
+                </div>
+              )}
+            </>
+          ) : (
+            <Textarea
+              value={answerText}
+              onChange={(e) => setAnswerText(e.target.value)}
+              placeholder="Type your answer here..."
+              className="min-h-[150px] resize-none"
+              disabled={isLoading || isSubmitting}
+            />
+          )}
           <div className="flex justify-between items-center">
             <span className="text-xs text-muted-foreground">
               {answerText.length > 0 ? `${answerText.split(/\s+/).filter(Boolean).length} words` : ""}
