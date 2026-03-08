@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowLeft, BrainCircuit, Play, Loader2, Zap, BookOpen } from "lucide-react";
+import { ArrowLeft, BrainCircuit, Play, Loader2, Zap, BookOpen, Keyboard, Mic } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -8,6 +8,7 @@ import { PageTooltip } from "@/components/onboarding/PageTooltip";
 export type InterviewType = "technical" | "behavioral" | "hr";
 export type RoleLevel = "fresher" | "junior" | "mid";
 export type InterviewMode = "practice" | "simulation";
+export type InputMode = "text" | "voice";
 
 export const interviewTypeLabels: Record<InterviewType, { label: string; icon: string; description: string }> = {
   technical: { label: "Technical", icon: "💻", description: "Coding, system design, and technical problem-solving" },
@@ -34,6 +35,8 @@ interface InterviewSetupProps {
   setRoleLevel: (level: RoleLevel) => void;
   interviewMode: InterviewMode;
   setInterviewMode: (mode: InterviewMode) => void;
+  inputMode: InputMode;
+  setInputMode: (mode: InputMode) => void;
   candidateSkills: string[];
   isLoading: boolean;
   onStart: () => void;
@@ -46,6 +49,8 @@ export function InterviewSetup({
   setRoleLevel,
   interviewMode,
   setInterviewMode,
+  inputMode,
+  setInputMode,
   candidateSkills,
   isLoading,
   onStart,
@@ -107,7 +112,32 @@ export function InterviewSetup({
             </div>
           </div>
 
-          {/* Interview Type Selection */}
+          {/* Input Mode Selection */}
+          <div className="space-y-3">
+            <label className="text-sm font-medium">Answer Input Mode</label>
+            <div className="grid sm:grid-cols-2 gap-3">
+              <button
+                onClick={() => setInputMode("text")}
+                className={`p-4 rounded-lg border-2 text-left transition-all ${
+                  inputMode === "text" ? "border-primary bg-primary/5" : "border-muted hover:border-primary/50"
+                }`}
+              >
+                <Keyboard className="h-6 w-6 mb-2 text-primary" />
+                <span className="font-medium block">Text Mode</span>
+                <span className="text-xs text-muted-foreground">Type your answers using the keyboard.</span>
+              </button>
+              <button
+                onClick={() => setInputMode("voice")}
+                className={`p-4 rounded-lg border-2 text-left transition-all ${
+                  inputMode === "voice" ? "border-primary bg-primary/5" : "border-muted hover:border-primary/50"
+                }`}
+              >
+                <Mic className="h-6 w-6 mb-2 text-primary" />
+                <span className="font-medium block">Voice Mode</span>
+                <span className="text-xs text-muted-foreground">Answer verbally, simulating a real interview.</span>
+              </button>
+            </div>
+          </div>
           <div className="space-y-3">
             <label className="text-sm font-medium">Interview Type</label>
             <div className="grid sm:grid-cols-3 gap-3">

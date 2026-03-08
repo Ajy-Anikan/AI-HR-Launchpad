@@ -4,7 +4,7 @@ import { Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { InterviewSetup, type InterviewType, type RoleLevel, type InterviewMode } from "@/components/interview/InterviewSetup";
+import { InterviewSetup, type InterviewType, type RoleLevel, type InterviewMode, type InputMode } from "@/components/interview/InterviewSetup";
 import { InterviewSession } from "@/components/interview/InterviewSession";
 import { InterviewCompleted } from "@/components/interview/InterviewCompleted";
 
@@ -23,6 +23,7 @@ export default function MockInterview() {
   const [interviewType, setInterviewType] = useState<InterviewType | null>(null);
   const [roleLevel, setRoleLevel] = useState<RoleLevel | null>(null);
   const [interviewMode, setInterviewMode] = useState<InterviewMode>("practice");
+  const [inputMode, setInputMode] = useState<InputMode>("text");
   const [stage, setStage] = useState<InterviewStage>("setup");
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState(1);
@@ -175,6 +176,7 @@ export default function MockInterview() {
     setInterviewType(null);
     setRoleLevel(null);
     setInterviewMode("practice");
+    setInputMode("text");
     setSessionId(null);
     setCurrentQuestion(1);
     setQuestionText("");
@@ -203,6 +205,8 @@ export default function MockInterview() {
         setRoleLevel={setRoleLevel}
         interviewMode={interviewMode}
         setInterviewMode={setInterviewMode}
+        inputMode={inputMode}
+        setInputMode={setInputMode}
         candidateSkills={candidateSkills}
         isLoading={isLoading}
         onStart={startInterview}
@@ -215,6 +219,7 @@ export default function MockInterview() {
       <InterviewSession
         interviewType={interviewType!}
         interviewMode={interviewMode}
+        inputMode={inputMode}
         currentQuestion={currentQuestion}
         totalQuestions={totalQuestions}
         questionText={questionText}

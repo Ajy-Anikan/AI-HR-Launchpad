@@ -1,15 +1,17 @@
 import { useCallback } from "react";
-import { ArrowRight, CheckCircle2, Loader2, MessageSquare } from "lucide-react";
+import { ArrowRight, CheckCircle2, Loader2, MessageSquare, Mic } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { InterviewTimer } from "./InterviewTimer";
-import { interviewTypeLabels, type InterviewType, type InterviewMode, TIMER_SECONDS } from "./InterviewSetup";
+import VoiceRecorder from "./VoiceRecorder";
+import { interviewTypeLabels, type InterviewType, type InterviewMode, type InputMode, TIMER_SECONDS } from "./InterviewSetup";
 
 interface InterviewSessionProps {
   interviewType: InterviewType;
   interviewMode: InterviewMode;
+  inputMode: InputMode;
   currentQuestion: number;
   totalQuestions: number;
   questionText: string;
@@ -24,6 +26,7 @@ interface InterviewSessionProps {
 export function InterviewSession({
   interviewType,
   interviewMode,
+  inputMode,
   currentQuestion,
   totalQuestions,
   questionText,
@@ -51,6 +54,7 @@ export function InterviewSession({
           <span className="text-sm text-muted-foreground">
             {interviewTypeLabels[interviewType].label} Interview
             {interviewMode === "simulation" && " • Simulation"}
+            {inputMode === "voice" && " • 🎙️ Voice"}
           </span>
         </div>
         <Progress value={progress} className="h-2" />
@@ -91,21 +95,41 @@ export function InterviewSession({
       {/* Answer Area */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Your Answer</CardTitle>
+          <CardTitle className="text-base flex items-center gap-2">
+            {inputMode === "voice" && <Mic className="h-4 w-4 text-primary" />}
+            Your Answer
+          </CardTitle>
           <CardDescription>
-            {interviewMode === "simulation"
+            {inputMode === "voice"
+              ? "Speak your answer clearly. Your voice will be transcribed in real-time."
+              : interviewMode === "simulation"
               ? "Answer within the time limit. The interview will auto-advance when time expires."
               : "Take your time. There's no rush—this is practice."}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Textarea
-            value={answerText}
-            onChange={(e) => setAnswerText(e.target.value)}
-            placeholder="Type your answer here..."
-            className="min-h-[150px] resize-none"
-            disabled={isLoading || isSubmitting}
-          />
+          {inputMode === "voice" ? (
+            <>
+              <VoiceRecorder
+                onTranscript={setAnswerText}
+                disabled={isLoading || isSubmitting}
+              />
+              {answerText && (
+                <div className="p-3 rounded-lg bg-muted/50 border max-h-40 overflow-y-auto">
+                  <p className="text-xs font-medium text-muted-foreground mb-1">Transcribed Answer</p>
+                  <p className="text-sm">{answerText}</p>
+                </div>
+              )}
+            </>
+          ) : (
+            <Textarea
+              value={answerText}
+              onChange={(e) => setAnswerText(e.target.value)}
+              placeholder="Type your answer here..."
+              className="min-h-[150px] resize-none"
+              disabled={isLoading || isSubmitting}
+            />
+          )}
           <div className="flex justify-between items-center">
             <span className="text-xs text-muted-foreground">
               {answerText.length > 0 ? `${answerText.split(/\s+/).filter(Boolean).length} words` : ""}
