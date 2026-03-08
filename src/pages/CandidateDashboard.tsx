@@ -456,6 +456,15 @@ export default function CandidateDashboard() {
               missingSkills={screeningResults.flatMap(r => r.missing_skills || [])}
             />
           )}
+
+          {/* AI Career Path Suggestions */}
+          <CareerPathSuggestions
+            skills={resume?.skills || []}
+            experienceYears={resume?.experience_years ?? null}
+            missingSkills={screeningResults.flatMap(r => r.missing_skills || [])}
+            strengths={[]}
+            gaps={skillGaps}
+          />
         </div>
 
         {/* Right Column - Sidebar */}
