@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { SkillInsights } from "@/components/candidate/SkillInsights";
+import ResumeImprovements from "@/components/candidate/ResumeImprovements";
 
 interface ResumeData {
   skills: string[];
