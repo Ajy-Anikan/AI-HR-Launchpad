@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { useDemo } from "@/contexts/DemoContext";
 
 export default function Index() {
   return (

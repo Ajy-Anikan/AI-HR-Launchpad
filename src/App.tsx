@@ -55,8 +55,9 @@ const App = () => (
               <Route path="/analytics" element={<Analytics />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Layout>
+              </Routes>
+            </Layout>
+          </DemoProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
