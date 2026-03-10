@@ -25,30 +25,29 @@ export default function Index() {
     <div className="flex flex-col overflow-hidden">
       {/* Hero Section */}
       <section className="relative py-20 md:py-32 lg:py-40 overflow-hidden">
-        {/* Animated gradient background */}
         <div className="absolute inset-0 -z-10">
           <div 
             className="absolute inset-0 opacity-30"
             style={{
-              background: "radial-gradient(ellipse 80% 60% at 50% 0%, hsl(173 58% 39% / 0.15), transparent), radial-gradient(ellipse 60% 50% at 80% 50%, hsl(199 89% 48% / 0.1), transparent), radial-gradient(ellipse 60% 40% at 10% 80%, hsl(173 58% 39% / 0.08), transparent)",
+              background: "radial-gradient(ellipse 80% 60% at 50% 0%, hsl(224 71% 33% / 0.15), transparent), radial-gradient(ellipse 60% 50% at 80% 50%, hsl(263 70% 58% / 0.1), transparent), radial-gradient(ellipse 60% 40% at 10% 80%, hsl(168 76% 40% / 0.08), transparent)",
             }}
           />
           <div 
             className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] rounded-full opacity-[0.04] animate-[pulse_8s_ease-in-out_infinite]"
-            style={{ background: "radial-gradient(circle, hsl(173 58% 39%), transparent 70%)" }}
+            style={{ background: "radial-gradient(circle, hsl(224 71% 33%), transparent 70%)" }}
           />
         </div>
 
         <div className="container mx-auto px-4">
           <div className="mx-auto max-w-3xl text-center">
-            <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl mb-6 leading-[1.1]">
-              Prepare Smarter.{" "}
-              <span className="text-gradient">Hire Better.</span>
+            <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl mb-4 leading-[1.1]">
+              <span className="text-gradient">VreAI</span>
             </h1>
-            
+            <p className="text-lg sm:text-xl md:text-2xl font-medium text-muted-foreground mb-2">
+              Where Talent Meets Opportunity
+            </p>
             <p className="text-base sm:text-lg text-muted-foreground md:text-xl mb-10 max-w-2xl mx-auto leading-relaxed">
-              An AI-driven platform that empowers candidates with structured interview 
-              preparation and helps HR teams make informed, unbiased hiring decisions.
+              AI-powered interview preparation and intelligent hiring insights.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -87,7 +86,6 @@ export default function Index() {
       {/* Role Selection Section */}
       <section className="container mx-auto px-4 py-16 md:py-24">
         <div className="grid md:grid-cols-2 gap-6 lg:gap-8 max-w-5xl mx-auto">
-          {/* Candidate Card */}
           <Card className="group relative overflow-hidden border bg-card shadow-soft card-hover">
             <CardContent className="p-8 lg:p-10">
               <div className="mb-6 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
@@ -120,7 +118,6 @@ export default function Index() {
             </CardContent>
           </Card>
 
-          {/* HR Card */}
           <Card className="group relative overflow-hidden border bg-card shadow-soft card-hover">
             <CardContent className="p-8 lg:p-10">
               <div className="mb-6 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
@@ -212,8 +209,8 @@ export default function Index() {
             Ready to get started?
           </h2>
           <p className="text-primary-foreground/80 mb-8 max-w-lg mx-auto leading-relaxed">
-            Join a platform built for smarter preparation and responsible hiring. 
-            No rankings, no bias — just growth.
+            Join VreAI — where talent meets opportunity. 
+            Smarter preparation. Responsible hiring. No bias.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" variant="secondary" asChild className="text-base px-8">
