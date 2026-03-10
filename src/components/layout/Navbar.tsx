@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Menu, X, BrainCircuit, LogOut, Loader2 } from "lucide-react";
+import { Menu, X, Sparkles, LogOut, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -36,12 +36,12 @@ export function Navbar() {
       <div className="container mx-auto">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 group">
+          <Link to="/" className="flex items-center gap-2.5 group">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg gradient-primary shadow-glow transition-transform group-hover:scale-105">
-              <BrainCircuit className="h-5 w-5 text-primary-foreground" />
+              <Sparkles className="h-5 w-5 text-primary-foreground" />
             </div>
-            <span className="text-lg font-bold text-foreground hidden sm:block">
-              AI-HR Assistant
+            <span className="text-xl font-heading font-bold text-foreground tracking-tight hidden sm:block">
+              Vre<span className="text-gradient">AI</span>
             </span>
           </Link>
 
